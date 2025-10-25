@@ -3,79 +3,82 @@ kind: Application
 metadata:
   name: nextcloud
   namespace: argocd
+  # Aggiungi un finalizer per permettere ad Argo CD di eliminare le risorse
+  # in modo pulito quando questa Application viene cancellata.
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-
-  # --- Dati del Chart Helm (come da tuo file) ---
+  
+  # Sorgente: L'Helm Chart ufficiale di Nextcloud
   source:
     repoURL: https://nextcloud.github.io/helm/
     chart: nextcloud
-    targetRevision: 4.6.10 # Tua versione del chart
-
-    # --- Configurazione (Values) ---
+    targetRevision: '8.5.1'  # Pinna sempre una versione specifica del chart!
+    
+    # Qui è dove configuri Nextcloud. 
+    # Questi sono i 'values.yaml' che passi all'Helm chart.
     helm:
       values: |
         # --- Configurazione Generale di Nextcloud ---
         nextcloud:
-          host: "nextcloud.tuodominio.com"  # <-- MODIFICA
+          host: "nextcloud.tuodominio.com"  # <-- MODIFICA QUESTO
           username: "admin"
-          password: "CAMBIAMI_PASSWORD_ADMIN" # <-- MODIFICA
-
-          # --- Configurazione Database Esterno (PostgreSQL) ---
-          database:
-            type: "postgresql"
-            # Host: "<nome-servizio>.<namespace-servizio>.svc.cluster.local"
-            host: "k3s-db.db.svc.cluster.local" # <-- CAMBIA 'db' con il VERO namespace del tuo DB
-            user: "tuo_user_postgres"       # <-- MODIFICA
-            password: "tua_password_postgres"  # <-- MODIFICA
-            database: "tuo_db_postgres"      # <-- MODIFICA
-
-        # --- Disabilita il Database Interno (MariaDB) ---
-        mariadb:
-          enabled: false
-
-        # --- Disabilita Redis Interno ---
-        redis:
-          enabled: false
+          password: "CAMBIAMI_PASSWORD_ADMIN" # <-- MODIFICA QUESTO
 
         # --- Configurazione Ingress (per k3s/Traefik) ---
         ingress:
           enabled: true
-          className: "traefik" # Default per k3s
+          className: "traefik" # k3s usa Traefik come predefinito
           annotations:
-            # Presuppone tu abbia cert-manager installato
+            # Abilita cert-manager per SSL automatico (presuppone tu abbia cert-manager installato)
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           tls:
             - secretName: nextcloud-tls
               hosts:
-                - "nextcloud.tuodominio.com" # <-- MODIFICA
+                - "nextcloud.tuodominio.com" # <-- MODIFICA QUESTO
 
+        # --- Abilita e configura il Database interno (MariaDB) ---
+        mariadb:
+          enabled: true
+          auth:
+            rootPassword: "CAMBIAMI_PASSWORD_DB_ROOT" # <-- MODIFICA QUESTO
+            password: "CAMBIAMI_PASSWORD_DB_NEXTCLOUD" # <-- MODIFICA QUESTO
+
+        # --- Abilita e configura Redis interno (per caching e file locking) ---
+        redis:
+          enabled: true
+          
         # --- Configurazione della Persistenza (Storage) ---
         persistence:
           enabled: true
-          # 'local-path' va bene per k3s single-node
-          storageClass: "local-path" 
+          # NOTA: 'local-path' è il provisioner predefinito di k3s.
+          # Funziona bene per un cluster single-node.
+          # Vedi le avvertenze sotto se hai un cluster multi-nodo.
+          storageClass: "local-path"
           size: 10Gi
-
-        # Abilita il cronjob per le attività di background
+#        persistence:
+#          enabled: true
+#          storageClass: "nfs-client" # <-- MODIFICATO
+#          accessMode: ReadWriteMany  # <-- MODIFICATO/AGGIUNTO
+#          size: 100Gi              # <-- MODIFICATO (Esempio)
+        # Consigliato per migliorare le prestazioni e la gestione
         cronjob:
           enabled: true
 
-        # Usiamo Ingress, non LoadBalancer
+        # Disabilita il LoadBalancer, useremo Ingress
         service:
           type: ClusterIP
 
-  # --- Destinazione (come da tuo file) ---
+  # Destinazione: Dove Argo CD deve installare Nextcloud
   destination:
     server: https://kubernetes.default.svc
-    namespace: nextcloud-test # Tuo namespace di destinazione
+    namespace: nextcloud # Crea un namespace dedicato per Nextcloud
 
-  # --- Sync Policy (come da tuo file) ---
+  # Sync Policy: Come Argo CD deve gestire la sincronizzazione
   syncPolicy:
     automated:
-      prune: true
-      selfHeal: true
+      prune: true    # Rimuove le risorse che non sono più nel chart
+      selfHeal: true # Si auto-corregge se la configurazione live devia
     syncOptions:
-      - CreateNamespace=true # Argo creerà il namespace
+      - CreateNamespace=true # Dice ad Argo CD di creare il namespace 'nextcloud'
