@@ -4,57 +4,74 @@ metadata:
   name: nextcloud
   namespace: argocd
   finalizers:
-    - resources-finalizer.argocd.argoproj.io # Aggiunto per pulizia
+    - resources-finalizer.argoproj.io
 spec:
   project: default
+  
+  # --- Sorgente: Helm Chart Ufficiale ---
   source:
     repoURL: https://nextcloud.github.io/helm/
     chart: nextcloud
-    targetRevision: 4.6.10
-
+    # Usiamo una versione recente del chart
+    targetRevision: '8.5.1' 
+    
     helm:
       values: |
-        # ================================================================
-        # --- 1. Blocco 'nextcloud:' UNITO E CORRETTO ---
-        # ================================================================
+        # --- Configurazione Generale di Nextcloud ---
         nextcloud:
-          # --- Configurazione Admin e Dominio (dal tuo file) ---
-          username: "nc-admin"
-          password: "Cerauncagnonenelbosco2025!" 
-          host: "nextcloud.agnenergia.com"
+          host: "nextcloud.agnenergia.com" # Il tuo dominio
+          username: "nc-admin"              # Il tuo utente admin
+          password: "Cerauncagnonenelbosco2025!" # La tua password admin
 
-          # --- Configurazione Storage per /var/www/html/config (dal tuo file) ---
-          # È corretto tenerlo separato dai dati principali
-          persistence:
-            enabled: true
-            storageClass: "nfs-client"
-            accessMode: ReadWriteOnce 
-            size: 1Gi
-        
-          # ================================================================
-          # --- 2. Configurazione Database CORRETTA ---
-          # ================================================================
-          # Il chart 4.6.10 usa 'nextcloud.database', non 'externalDatabase'
-          database:
-            type: "postgresql"
-            # NOTA: 'k3s-db' funziona solo se il DB è nello stesso namespace ('nextcloud')
-            # Altrimenti usa 'k3s-db.<namespace-del-db>.svc.cluster.local'
-            host: "k3s-db"
-            user: "nextclouduser"
-            database: "nextclouddb"
-            
-            # --- Gestione Password DB ---
-            # Stai usando un secret, che è un'ottima pratica.
-            # Assicurati che questo segreto esista nel namespace 'nextcloud'
-            # (Lo creo con: kubectl create secret generic nextcloud-db-secret -n nextcloud --from-literal=password=LA_TUA_PASSWORD_DB)
-            passwordSecret:
-              name: "nextcloud-db-secret"
-              key: "password"
-
-        # ================================================================
-        # --- 3. Configurazione Ingress (Accesso Esterno) ---
-        # ================================================================
+        # --- Configurazione Ingress (per k3s/Traefik) ---
         ingress:
           enabled: true
-          # NOTA: Ho cambiato 'nginx' in 'traefik', che è il default di k3s.
-          # Se usi N
+          className: "traefik" # Default per k3s
+          annotations:
+            # Abilita cert-manager per SSL automatico
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          tls:
+            - secretName: nextcloud-tls
+              hosts:
+                - "nextcloud.agnenergia.com" 
+
+        # --- Abilita il Database interno (MariaDB) ---
+        # Questo crea un database per te
+        mariadb:
+          enabled: true
+          auth:
+            rootPassword: "CAMBIAMI_PASSWORD_DB_ROOT_SECRETA"
+            password: "CAMBIAMI_PASSWORD_DB_NEXTCLOUD_SECRETA"
+
+        # --- Abilita Redis interno (per caching e file locking) ---
+        redis:
+          enabled: true
+          
+        # --- Configurazione della Persistenza (Storage) ---
+        # Usa il 'local-path' provisioner predefinito di k3s
+        persistence:
+          enabled: true
+          storageClass: "local-path"
+          size: 10Gi # Puoi aumentare questo valore
+
+        # Consigliato per migliorare le prestazioni
+        cronjob:
+          enabled: true
+
+        # Disabilita il LoadBalancer, useremo Ingress
+        service:
+          type: ClusterIP
+
+  # --- Destinazione: Dove installare ---
+  destination:
+    server: https://kubernetes.default.svc
+    # Installiamo nel namespace 'nextcloud' (come nel tuo file)
+    namespace: nextcloud 
+
+  # --- Sync Policy ---
+  syncPolicy:
+    automated:
+      prune: true    
+      selfHeal: true 
+    syncOptions:
+      - CreateNamespace=true # Argo CD creerà il namespace 'nextcloud'
