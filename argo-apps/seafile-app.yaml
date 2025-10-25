@@ -1,0 +1,87 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: seafile
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # --- Repository Helm di Seafile ---
+    # Nota: Usiamo un chart della community ben noto (helm.sh)
+    repoURL: https://helm.sh/charts
+    chart: seafile-server 
+    targetRevision: 0.1.0 # Versione specifica del chart
+
+    # --- Configurazione Helm ---
+    helm:
+      values: |
+        # 1. Configurazione Generale
+        image:
+          tag: "9.0.9" # Ultima versione stabile di Seafile (verifica se ce ne sono di più nuove)
+
+        # 2. Admin User (da creare al primo accesso)
+        # Non si imposta da qui, lo farai dalla UI
+
+        # 3. Configurazione Ingress
+        ingress:
+          enabled: true
+          ingressClassName: "nginx" # Usa il nostro ingress-nginx
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: "0" # Necessario per upload grandi in Seafile
+          hosts:
+            - host: "nextcloud.agnenergia.com" # ❗️ Usa il tuo vero dominio/hostname
+              paths:
+                - path: /
+                  pathType: Prefix
+          # Opzionale: Configurazione TLS con Cert-Manager
+          # tls:
+          #   - secretName: seafile-tls-secret
+          #     hosts:
+          #       - seafile.agnenergia.com
+
+        # 4. Disabilita DB Interno
+        mariadb:
+          enabled: false
+
+        # 5. Configura DB Esterno PostgreSQL
+        externalDatabase:
+          enabled: true
+          type: postgresql
+          host: "k3s-db"             # Nome DNS server DB
+          port: 5432
+          username: "seafileuser"     # Utente DB creato
+          # Prende la password dal secret
+          existingSecret: "seafile-db-secret"
+          secretPasswordKey: "password"
+          databaseNames:
+            ccnet: "ccnetdb"       # Nome DB 1
+            seafile: "seafiledb"     # Nome DB 2
+            seahub: "seahubdb"       # Nome DB 3
+
+        # 6. Configura Storage NFS
+        persistence:
+          enabled: true
+          storageClassName: "nfs-client" # La nostra StorageClass NFS
+          accessMode: ReadWriteOnce # Seafile usa RWO anche con NFS
+          size: 100Gi              # Spazio per i dati
+
+        # 7. Disabilita Elasticsearch (opzionale)
+        elasticsearch:
+          enabled: false
+          
+        # 8. Disabilita Memcached (opzionale, usa quello interno)
+        memcached:
+           enabled: false # Il chart ne include uno semplice se non specificato altrimenti
+
+  # --- Destinazione ---
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: seafile # Installa nel namespace 'seafile'
+
+  # --- Sync Policy ---
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
