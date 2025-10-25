@@ -1,0 +1,81 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nextcloud-test
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  # --- Dati del Chart Helm (come da tuo file) ---
+  source:
+    repoURL: https://nextcloud.github.io/helm/
+    chart: nextcloud
+    targetRevision: 4.6.10 # Tua versione del chart
+
+    # --- Configurazione (Values) ---
+    helm:
+      values: |
+        # --- Configurazione Generale di Nextcloud ---
+        nextcloud:
+          host: "nextcloud.tuodominio.com"  # <-- MODIFICA
+          username: "admin"
+          password: "CAMBIAMI_PASSWORD_ADMIN" # <-- MODIFICA
+
+          # --- Configurazione Database Esterno (PostgreSQL) ---
+          database:
+            type: "postgresql"
+            # Host: "<nome-servizio>.<namespace-servizio>.svc.cluster.local"
+            host: "k3s-db.db.svc.cluster.local" # <-- CAMBIA 'db' con il VERO namespace del tuo DB
+            user: "tuo_user_postgres"       # <-- MODIFICA
+            password: "tua_password_postgres"  # <-- MODIFICA
+            database: "tuo_db_postgres"      # <-- MODIFICA
+
+        # --- Disabilita il Database Interno (MariaDB) ---
+        mariadb:
+          enabled: false
+
+        # --- Disabilita Redis Interno ---
+        redis:
+          enabled: false
+
+        # --- Configurazione Ingress (per k3s/Traefik) ---
+        ingress:
+          enabled: true
+          className: "traefik" # Default per k3s
+          annotations:
+            # Presuppone tu abbia cert-manager installato
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          tls:
+            - secretName: nextcloud-tls
+              hosts:
+                - "nextcloud.tuodominio.com" # <-- MODIFICA
+
+        # --- Configurazione della Persistenza (Storage) ---
+        persistence:
+          enabled: true
+          # 'local-path' va bene per k3s single-node
+          storageClass: "local-path" 
+          size: 10Gi
+
+        # Abilita il cronjob per le attività di background
+        cronjob:
+          enabled: true
+
+        # Usiamo Ingress, non LoadBalancer
+        service:
+          type: ClusterIP
+
+  # --- Destinazione (come da tuo file) ---
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nextcloud-test # Tuo namespace di destinazione
+
+  # --- Sync Policy (come da tuo file) ---
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true # Argo creerà il namespace
