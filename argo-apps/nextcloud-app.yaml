@@ -4,7 +4,7 @@ metadata:
   name: nextcloud
   namespace: argocd
   finalizers:
-    - resources-finalizer.argoproj.io
+    - resources-finalizer.argocd.argoproj.io # Corretto (c'era un typo nel file precedente)
 spec:
   project: default
   
@@ -12,60 +12,64 @@ spec:
   source:
     repoURL: https://nextcloud.github.io/helm/
     chart: nextcloud
-    # Usiamo una versione recente del chart
     targetRevision: '8.5.1' 
     
     helm:
       values: |
         # --- Configurazione Generale di Nextcloud ---
         nextcloud:
-          host: "nextcloud.agnenergia.com" # Il tuo dominio
-          username: "nc-admin"              # Il tuo utente admin
-          password: "Cerauncagnonenelbosco2025!" # La tua password admin
+          host: "nextcloud.agnenergia.com" 
+          username: "nc-admin"              
+          password: "Cerauncagnonenelbosco2025!" # Password Admin di Nextcloud
+
+          # ================================================================
+          # --- MODIFICATO: Configurazione Database (Password in Chiaro) ---
+          # ================================================================
+          database:
+            type: "postgresql"
+            # Nome DNS del tuo servizio DB. 
+            # 'k3s-db' funziona solo se è nello stesso namespace ('nextcloud').
+            # Altrimenti usa 'k3s-db.<namespace-del-db>.svc.cluster.local'
+            host: "k3s-db" 
+            user: "nextclouduser"   # Utente DB (dal tuo vecchio file)
+            database: "nextclouddb" # Nome DB (dal tuo vecchio file)
+            
+            # --- Password in chiaro (NON SICURO) ---
+            password: "Cerauncagnonenelbosco2025!" # <-- MODIFICA QUI
 
         # --- Configurazione Ingress (per k3s/Traefik) ---
         ingress:
           enabled: true
-          className: "traefik" # Default per k3s
+          className: "traefik" 
           annotations:
-            # Abilita cert-manager per SSL automatico
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           tls:
             - secretName: nextcloud-tls
               hosts:
                 - "nextcloud.agnenergia.com" 
 
-        # --- Abilita il Database interno (MariaDB) ---
-        # Questo crea un database per te
+        # --- Database Interno Disabilitato ---
         mariadb:
-          enabled: true
-          auth:
-            rootPassword: "CAMBIAMI_PASSWORD_DB_ROOT_SECRETA"
-            password: "CAMBIAMI_PASSWORD_DB_NEXTCLOUD_SECRETA"
+          enabled: false
 
-        # --- Abilita Redis interno (per caching e file locking) ---
+        # --- MANTENUTO: Redis interno (consigliato per performance) ---
         redis:
           enabled: true
           
         # --- Configurazione della Persistenza (Storage) ---
-        # Usa il 'local-path' provisioner predefinito di k3s
         persistence:
           enabled: true
           storageClass: "local-path"
-          size: 10Gi # Puoi aumentare questo valore
+          size: 10Gi 
 
-        # Consigliato per migliorare le prestazioni
         cronjob:
           enabled: true
-
-        # Disabilita il LoadBalancer, useremo Ingress
         service:
           type: ClusterIP
 
   # --- Destinazione: Dove installare ---
   destination:
     server: https://kubernetes.default.svc
-    # Installiamo nel namespace 'nextcloud' (come nel tuo file)
     namespace: nextcloud 
 
   # --- Sync Policy ---
@@ -74,4 +78,4 @@ spec:
       prune: true    
       selfHeal: true 
     syncOptions:
-      - CreateNamespace=true # Argo CD creerà il namespace 'nextcloud'
+      - CreateNamespace=true
