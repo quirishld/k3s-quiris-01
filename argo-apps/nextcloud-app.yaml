@@ -63,8 +63,10 @@ spec:
         # --- Configurazione della Persistenza (Storage) ---
         persistence:
           enabled: true
-          storageClass: "local-path"
-          size: 10Gi 
+          # Usa la StorageClass creata dal tuo provisioner NFS
+          storageClass: "nfs-client"
+          # Aumentiamo lo spazio, dato che è per i dati
+          size: 50Gi
 
         cronjob:
           enabled: true
