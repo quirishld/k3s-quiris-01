@@ -50,18 +50,18 @@ spec:
           enabled: true
           
         # --- Configurazione della Persistenza (Storage) ---
-#        persistence:
-#          enabled: true
-#          # NOTA: 'local-path' è il provisioner predefinito di k3s.
-#          # Funziona bene per un cluster single-node.
-#          # Vedi le avvertenze sotto se hai un cluster multi-nodo.
-#          storageClass: "local-path"
-#          size: 10Gi
         persistence:
           enabled: true
-          storageClass: "nfs-client" # <-- MODIFICATO
-          accessMode: ReadWriteMany  # <-- MODIFICATO/AGGIUNTO
-          size: 100Gi              # <-- MODIFICATO (Esempio)
+          # NOTA: 'local-path' è il provisioner predefinito di k3s.
+          # Funziona bene per un cluster single-node.
+          # Vedi le avvertenze sotto se hai un cluster multi-nodo.
+          storageClass: "local-path"
+          size: 10Gi
+#        persistence:
+#          enabled: true
+#          storageClass: "nfs-client" # <-- MODIFICATO
+#          accessMode: ReadWriteMany  # <-- MODIFICATO/AGGIUNTO
+#          size: 100Gi              # <-- MODIFICATO (Esempio)
         # Consigliato per migliorare le prestazioni e la gestione
         cronjob:
           enabled: true
