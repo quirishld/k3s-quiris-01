@@ -40,13 +40,17 @@ spec:
         # --- Configurazione Ingress (per k3s/Traefik) ---
         ingress:
           enabled: true
-          className: "traefik" 
+          className: "nginx" # Specifica che useremo ingress-nginx
           annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          tls:
-            - secretName: nextcloud-tls
-              hosts:
-                - "nextcloud.agnenergia.com" 
+            # Opzionale: Se vuoi forzare HTTPS (richiede Cert-Manager o config manuale SSL)
+            # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+            # Opzionale: Per file grandi (aumenta il limite di upload)
+            nginx.ingress.kubernetes.io/proxy-body-size: "1024m" 
+          hosts:
+            - host: "nextcloud.agnenergia.com" # ❗️ Usa il tuo vero dominio/hostname
+              paths:
+                - path: /
+                  pathType: Prefix
 
         # --- Database Interno Disabilitato ---
         mariadb:
