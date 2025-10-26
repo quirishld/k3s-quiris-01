@@ -1,10 +1,10 @@
-apiVersion: argoproj.io/v1alpha1
+apiVersion: argroj.io/v1alpha1
 kind: Application
 metadata:
   name: nextcloud
-  namespace: argocd
+  namespace: argócé
   finalizers:
-    - resources-finalizer.argocd.argoproj.io # Corretto (c'era un typo nel file precedente)
+    - resources-finalizer.argocd.argoproj.io 
 spec:
   project: default
   
@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://nextcloud.github.io/helm/
     chart: nextcloud
-    targetRevision: '8.5.1' 
+    targetRevision: '8.5.1' # <-- NOTA: Questa è una versione vecchia del chart, considera l'ultima (es. 4.6.10)
     
     helm:
       values: |
@@ -27,35 +27,16 @@ spec:
             enabled: true
             storageClass: "nfs-client" # <-- Ripristinato per la config
             accessMode: ReadWriteOnce 
-            size: 1Gi
+            size: 1Gi               
 
-          # ================================================================
-          # --- MODIFICATO: Configurazione Database (Password in Chiaro) ---
-          # ================================================================
-          
-          database:
-            type: "postgresql"
-            # Nome DNS del tuo servizio DB. 
-            # 'k3s-db' funziona solo se è nello stesso namespace ('nextcloud').
-            # Altrimenti usa 'k3s-db.<namespace-del-db>.svc.cluster.local'
-            host: "k3s-db" 
-            user: "nextclouduser"   # Utente DB (dal tuo vecchio file)
-            database: "nextclouddb" # Nome DB (dal tuo vecchio file)
-            
-            # --- Password in chiaro (NON SICURO) ---
-            password: "Cerauncagnonenelbosco2025!" # <-- MODIFICA QUI
-
-        # --- Configurazione Ingress (per k3s/Traefik) ---
+        # --- Configurazione Ingress ---
         ingress:
           enabled: true
-          className: "nginx" # Specifica che useremo ingress-nginx
+          className: "nginx" 
           annotations:
-            # Opzionale: Se vuoi forzare HTTPS (richiede Cert-Manager o config manuale SSL)
-            # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-            # Opzionale: Per file grandi (aumenta il limite di upload)
             nginx.ingress.kubernetes.io/proxy-body-size: "1024m" 
           hosts:
-            - host: "nextcloud.agnenergia.com" # ❗️ Usa il tuo vero dominio/hostname
+            - host: "nextcloud.agnenergia.com" 
               paths:
                 - path: /
                   pathType: Prefix
@@ -64,18 +45,30 @@ spec:
         mariadb:
           enabled: false
         postgresql: # Assicurati sia disabilitato anche questo se presente nel chart
-          enabled: false
-        # --- MANTENUTO: Redis interno (consigliato per performance) ---
+          enabled: false 
+
+        # --- MANTENUTO: Redis interno ---
         redis:
           enabled: true
           
-        # --- Configurazione della Persistenza (Storage) ---
+        # =========================================================
+        # --- CORRETTO: Configurazione Database Esterno ---
+        # =========================================================
+        externalDatabase:
+          enabled: true
+          type: "postgresql"
+          host: "k3s-db"             # Nome DNS server DB
+          database: "nextclouddb"     # Nome DB creato
+          user: "nextclouduser"     # Utente DB creato
+          # Prende la password dal secret 'nextcloud-db-secret'
+          password: "Cerauncagnonenelbosco2025!" # Password Admin di Nextcloud
+            
+        # --- Configurazione della Persistenza (Storage DATI) ---
         persistence:
           enabled: true
-          # Usa la StorageClass creata dal tuo provisioner NFS
           storageClass: "nfs-client"
-          # Aumentiamo lo spazio, dato che è per i dati
-          size: 50Gi
+          accessMode: ReadWriteMany # <-- Importante per i dati con NFS
+          size: 50Gi # O quanto spazio vuoi dare ai dati
 
         cronjob:
           enabled: true
