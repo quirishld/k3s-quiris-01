@@ -1,17 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Il nome della tua applicazione in Argo CD
   name: seafile
+  # Indica ad Argo CD di gestire le risorse in questo namespace
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    # Repository ufficiale dei chart Seafile
+source:
+    # L'URL del repository Helm di Seafile
     repoURL: https://haiwen.github.io/seafile-helm-chart/repo
+    # Il nome del chart
     chart: seafile
-    targetRevision: 2.5.4 # Una versione stabile recente
+    # Specifica una versione per installazioni stabili
+    targetRevision: 2.5.4 # Puoi cambiare alla versione più recente
 
     helm:
       values: |
