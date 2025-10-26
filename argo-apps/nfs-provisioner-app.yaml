@@ -27,7 +27,7 @@ spec:
         storageClass:
           create: true
           defaultClass: true         # Make this the new default storage
-          name: nfs-client           # Name of the StorageClass
+          name: nfs-client-argo           # Name of the StorageClass
           allowVolumeExpansion: true
           reclaimPolicy: Retain      # Keep data even if PVC is deleted (safer)
           archiveOnDelete: false
