@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     # Repository ufficiale dei chart Seafile
-    repoURL: https://www.seafile.com
+    repoURL: https://seafile.github.io/seafile-helm
     chart: seafile
     targetRevision: 2.7.2 # Una versione stabile recente
 
