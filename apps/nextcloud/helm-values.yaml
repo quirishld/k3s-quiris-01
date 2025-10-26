@@ -1,0 +1,33 @@
+# helm-values.yaml
+# Valori per il chart Helm di Nextcloud
+
+# Usiamo l'Ingress Traefik (integrato in k3s)
+ingress:
+  enabled: true
+  className: "traefik" # Nome dell'IngressClass di K3s
+  hosts:
+    - host: nextcloud.agnenergia.com # <- CAMBIA QUESTO! Devi avere un DNS che punta al VIP .187
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: [] # Puoi aggiungere certificati Let's Encrypt qui in seguito
+
+# Puntiamo al nostro DB PostgreSQL esterno
+internalDatabase:
+  enabled: false # Disabilitiamo il MariaDB interno
+
+externalDatabase:
+  enabled: true
+  type: "postgresql"
+  host: "10.10.10.190"
+  database: "nextcloud"
+  user: "nextcloud_user"
+  passwordSecret:
+    name: "nextcloud-db-secret" # Creeremo questo segreto manualmente
+    key: "password"
+
+# Storage persistente
+persistence:
+  enabled: true
+  storageClass: "nfs-client" # La nostra SC creata prima
+  size: 50Gi # Imposta la dimensione che desideri
