@@ -23,6 +23,7 @@ spec:
     helm:
       values: |
         # Esempio: Configurazione dell'Ingress
+
         ingress:
           enabled: true
           className: "nginx" # Sostituisci con la tua classe Ingress (es. traefik, nginx)
@@ -50,7 +51,7 @@ spec:
         # Configurazione del database interno (per test/demo)
         # Per produzione, si consiglia vivamente un database ESTERNO (es. PostgreSQL o MariaDB)
         mariadb:
-          enabled: true # Imposta a 'false' se usi un database esterno
+          enabled: false # Imposta a 'false' se usi un database esterno
           db:
             user: nextcloud
             database: nextcloud
@@ -59,6 +60,20 @@ spec:
           auth:
             rootPassword: "cambiami-password-root-sicura"
             password: "cambiami-password-utente-sicura"
+
+        internalDatabase:
+          enabled: false # Disabilitiamo il MariaDB interno
+
+        externalDatabase:
+          enabled: true
+          type: "postgresql"
+          host: "10.10.10.190"
+          database: "nextcloud"
+          user: "nextcloud_user"
+          passwordSecret:
+            name: "nextcloud-db-secret" # Creeremo questo segreto manualmente
+            key: "password"
+
 
         # Impostazioni di Nextcloud
         nextcloud:
