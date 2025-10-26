@@ -16,7 +16,7 @@ spec:
     helm:
       # Argo CD prenderà i values dal *nostro* repo Git
       valueFiles:
-        - 'https://github.com/quirishld/k3s-quiris-01/tree/main/apps/nextcloud/helm-values.yaml'
+        - 'https://raw.githubusercontent.com/quirishld/k3s-quiris-01/tree/main/apps/nextcloud/helm-values.yaml'
         # ^-- ATTENZIONE: Usa l'URL "raw" del tuo file helm-values.yaml su GitHub
   
   destination:
