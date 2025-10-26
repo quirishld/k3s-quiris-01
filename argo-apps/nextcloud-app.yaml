@@ -33,17 +33,17 @@ spec:
           # --- MODIFICATO: Configurazione Database (Password in Chiaro) ---
           # ================================================================
           
-#          database:
-#            type: "postgresql"
-#            # Nome DNS del tuo servizio DB. 
-#            # 'k3s-db' funziona solo se è nello stesso namespace ('nextcloud').
-#            # Altrimenti usa 'k3s-db.<namespace-del-db>.svc.cluster.local'
-#            host: "k3s-db" 
-#            user: "nextclouduser"   # Utente DB (dal tuo vecchio file)
-#            database: "nextclouddb" # Nome DB (dal tuo vecchio file)
-#            
-#            # --- Password in chiaro (NON SICURO) ---
-#            password: "Cerauncagnonenelbosco2025!" # <-- MODIFICA QUI
+          database:
+            type: "postgresql"
+            # Nome DNS del tuo servizio DB. 
+            # 'k3s-db' funziona solo se è nello stesso namespace ('nextcloud').
+            # Altrimenti usa 'k3s-db.<namespace-del-db>.svc.cluster.local'
+            host: "k3s-db" 
+            user: "nextclouduser"   # Utente DB (dal tuo vecchio file)
+            database: "nextclouddb" # Nome DB (dal tuo vecchio file)
+            
+            # --- Password in chiaro (NON SICURO) ---
+            password: "Cerauncagnonenelbosco2025!" # <-- MODIFICA QUI
 
         # --- Configurazione Ingress (per k3s/Traefik) ---
         ingress:
@@ -76,16 +76,6 @@ spec:
           storageClass: "nfs-client"
           # Aumentiamo lo spazio, dato che è per i dati
           size: 50Gi
-
-        externalDatabase:
-          enabled: true
-          type: "postgresql"
-          host: "k3s-db"             # Nome DNS server DB
-          database: "nextclouddb"     # Nome DB creato
-          user: "nextclouduser"     # Utente DB creato
-          # Prende la password dal secret 'nextcloud-db-secret'
-          password: "Cerauncagnonenelbosco2025!" # <-- MODIFICA QUI
-
 
         cronjob:
           enabled: true
