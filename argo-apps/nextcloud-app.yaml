@@ -73,7 +73,7 @@ spec:
           image:
             registry: docker.io # Puoi ometterlo, è il default
             repository: bitnami/redis # Repository corretto
-            tag: "7" # Specifica un tag recente e valido (es. 7.2 o 7)
+            tag: 'latest' # Specifica un tag recente e valido (es. 7.2 o 7)
             
         # --- Configurazione della Persistenza (Storage) ---
         persistence:
