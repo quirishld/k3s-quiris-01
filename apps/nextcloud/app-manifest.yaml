@@ -9,18 +9,18 @@ spec:
   
   source:
     # Puntiamo all'Helm Chart ufficiale di Nextcloud
-    repoURL: '[https://nextcloud.github.io/helm/](https://nextcloud.github.io/helm/)'
+    repoURL: 'https://nextcloud.github.io/helm/'
     chart: 'nextcloud'
     targetRevision: '3.5.5' # Specifica una versione del chart per stabilità
     
     helm:
       # Argo CD prenderà i values dal *nostro* repo Git
       valueFiles:
-        - '[https://github.com/quirishld/k3s-quiris-01/tree/main/apps/nextcloud/helm-values.yaml](https://github.com/quirishld/k3s-quiris-01/tree/main/apps/nextcloud/helm-values.yaml)'
+        - 'https://github.com/quirishld/k3s-quiris-01/tree/main/apps/nextcloud/helm-values.yaml'
         # ^-- ATTENZIONE: Usa l'URL "raw" del tuo file helm-values.yaml su GitHub
   
   destination:
-    server: '[https://kubernetes.default.svc](https://kubernetes.default.svc)'
+    server: 'https://kubernetes.default.svc'
     namespace: nextcloud # L'app sarà deployata in un suo namespace
   
   syncPolicy:
