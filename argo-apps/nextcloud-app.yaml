@@ -45,6 +45,11 @@ spec:
             # --- Password in chiaro (NON SICURO) ---
             password: "Cerauncagnonenelbosco2025!" # <-- MODIFICA QUI
 
+        # --- Contesto di Sicurezza per i Volumi ---
+        securityContext:
+          enabled: true
+          fsGroup: 33 # Forza la proprietà del gruppo a www-data (UID/GID 33) sui volumi
+
         # --- Configurazione Ingress (per k3s/Traefik) ---
         ingress:
           enabled: true
