@@ -75,10 +75,10 @@ spec:
         # --- MANTENUTO: Redis interno (consigliato per performance) ---
         redis:
           enabled: true
-        #  image:
-        #    registry: docker.io # Puoi ometterlo, è il default
-        #    repository: bitnami/redis # Repository corretto
-        #    tag: 'latest' # Specifica un tag recente e valido (es. 7.2 o 7)
+          image:
+            registry: docker.io # Puoi ometterlo, è il default
+            repository: bitnami/redis # Repository corretto
+            tag: 'latest' # Specifica un tag recente e valido (es. 7.2 o 7)
             
         # --- Configurazione della Persistenza (Storage) ---
         persistence:
