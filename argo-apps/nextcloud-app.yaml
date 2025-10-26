@@ -17,7 +17,7 @@ spec:
     chart: nextcloud
     # Specifica la versione del chart che vuoi deployare
     # Si consiglia di bloccare una versione specifica per la stabilità
-    targetRevision: '4.6.10' # Sostituisci con la versione desiderata
+    targetRevision: '5.0.10' # Sostituisci con la versione desiderata
 
     # Qui puoi sovrascrivere i valori di default del chart (values.yaml)
     helm:
