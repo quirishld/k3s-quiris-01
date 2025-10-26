@@ -43,7 +43,9 @@ spec:
             database: "nextclouddb" # Nome DB (dal tuo vecchio file)
             
             # --- Password in chiaro (NON SICURO) ---
-            password: "Cerauncagnonenelbosco2025" # <-- MODIFICA QUI
+            passwordSecret:
+              name: "nextcloud-db-secret" # Creeremo questo segreto manualmente
+              key: "password"
 
         # --- Contesto di Sicurezza per i Volumi ---
         securityContext:
