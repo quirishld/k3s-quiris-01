@@ -39,8 +39,8 @@ spec:
             # 'k3s-db' funziona solo se è nello stesso namespace ('nextcloud').
             # Altrimenti usa 'k3s-db.<namespace-del-db>.svc.cluster.local'
             host: "10.10.10.190" 
-            user: "nextclouduser"   # Utente DB (dal tuo vecchio file)
-            database: "nextclouddb" # Nome DB (dal tuo vecchio file)
+            user: "nextcloud_user"   # Utente DB (dal tuo vecchio file)
+            database: "nextcloud" # Nome DB (dal tuo vecchio file)
             
             # --- Password in chiaro (NON SICURO) ---
             passwordSecret:
