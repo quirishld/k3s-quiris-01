@@ -23,11 +23,11 @@ spec:
           password: "Cerauncagnonenelbosco2025!" # Password Admin di Nextcloud
 
           # # --- Storage per la Configurazione ---
-          # persistence:
-            # enabled: true
-            # storageClass: "nfs-client" # <-- Ripristinato per la config
-            # accessMode: ReadWriteOnce 
-            # size: 1Gi
+          persistence:
+            enabled: true
+            storageClass: "nfs-client" # <-- Ripristinato per la config
+            accessMode: ReadWriteOnce 
+            size: 1Gi
 
           # ================================================================
           # --- MODIFICATO: Configurazione Database (Password in Chiaro) ---
