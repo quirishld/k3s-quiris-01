@@ -44,7 +44,7 @@ spec:
         # Assicurati di avere un provisioner di StorageClass nel tuo cluster
         persistence:
           enabled: true
-          storageClass: "nfs-client-argo" # La nostra SC creata prima
+          storageClass: "nfs-client" # La nostra SC creata prima
           size: 10Gi # Imposta la dimensione che desideri
 
         # Configurazione del database interno (per test/demo)
