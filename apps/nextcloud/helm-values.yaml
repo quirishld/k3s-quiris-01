@@ -26,6 +26,7 @@ externalDatabase:
     name: "nextcloud-db-secret" # Creeremo questo segreto manualmente
     key: "password"
 
+
 # Storage persistente
 persistence:
   enabled: true
