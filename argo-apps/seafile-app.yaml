@@ -29,7 +29,7 @@ spec:
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: "0" # Necessario per upload grandi in Seafile
           hosts:
-            - host: "nextcloud.agnenergia.com" # ❗️ Usa il tuo vero dominio/hostname
+            - host: "seafile.agnenergia.com" # ❗️ Usa il tuo vero dominio/hostname
               paths:
                 - path: /
                   pathType: Prefix
