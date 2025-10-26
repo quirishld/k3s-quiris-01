@@ -77,7 +77,7 @@ spec:
 
         # Impostazioni di Nextcloud
         nextcloud:
-          host: nextcloud.tuo-dominio.com
+          host: nextcloud.agnenergia.com
           # Imposta le credenziali dell'amministratore di Nextcloud
           # Anche queste dovrebbero essere gestite tramite Secret
           existingSecret:
