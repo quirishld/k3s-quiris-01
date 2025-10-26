@@ -15,19 +15,19 @@ spec:
     targetRevision: '4.6.10' 
     
     helm:
-      values: |
-        # --- Configurazione Generale di Nextcloud ---
-        nextcloud:
-          host: "nextcloud.agnenergia.com" 
-          username: "nc-admin"              
-          password: "Cerauncagnonenelbosco2025!" # Password Admin di Nextcloud
+      # values: |
+        # # --- Configurazione Generale di Nextcloud ---
+        # nextcloud:
+          # host: "nextcloud.agnenergia.com" 
+          # username: "nc-admin"              
+          # password: "Cerauncagnonenelbosco2025!" # Password Admin di Nextcloud
 
-          # --- Storage per la Configurazione ---
-          persistence:
-            enabled: true
-            storageClass: "nfs-client" # <-- Ripristinato per la config
-            accessMode: ReadWriteOnce 
-            size: 1Gi
+          # # --- Storage per la Configurazione ---
+          # persistence:
+            # enabled: true
+            # storageClass: "nfs-client" # <-- Ripristinato per la config
+            # accessMode: ReadWriteOnce 
+            # size: 1Gi
 
           # ================================================================
           # --- MODIFICATO: Configurazione Database (Password in Chiaro) ---
