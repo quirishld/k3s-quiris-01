@@ -15,8 +15,8 @@ spec:
     targetRevision: '4.6.10' 
     
     helm:
-      # values: |
-        # # --- Configurazione Generale di Nextcloud ---
+      values: |
+        # --- Configurazione Generale di Nextcloud ---
         # nextcloud:
           # host: "nextcloud.agnenergia.com" 
           # username: "nc-admin"              
