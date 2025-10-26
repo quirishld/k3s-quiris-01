@@ -17,10 +17,10 @@ spec:
     helm:
       values: |
         # --- Configurazione Generale di Nextcloud ---
-        # nextcloud:
-          # host: "nextcloud.agnenergia.com" 
-          # username: "nc-admin"              
-          # password: "Cerauncagnonenelbosco2025!" # Password Admin di Nextcloud
+        nextcloud:
+          host: "nextcloud.agnenergia.com" 
+          username: "nc-admin"              
+          password: "Cerauncagnonenelbosco2025!" # Password Admin di Nextcloud
 
           # # --- Storage per la Configurazione ---
           # persistence:
