@@ -1,4 +1,4 @@
-apiVersion: argoproj.io/v1alpha1 #funzinante
+apiVersion: argoproj.io/v1alpha1 #funzinante 2
 kind: Application
 metadata:
   name: nextcloud
@@ -63,15 +63,17 @@ spec:
         # --- Database Interno Disabilitato ---
         mariadb:
           enabled: false
+          
         postgresql: # Assicurati sia disabilitato anche questo se presente nel chart
           enabled: false
+          
         # --- MANTENUTO: Redis interno (consigliato per performance) ---
         redis:
           enabled: true
           image:
-            #registry: docker.io # Puoi ometterlo, è il default
+            registry: docker.io # Puoi ometterlo, è il default
             repository: bitnami/redis # Repository corretto
-            tag: "7.2" # Specifica un tag recente e valido (es. 7.2 o 7)
+            tag: "7" # Specifica un tag recente e valido (es. 7.2 o 7)
             
         # --- Configurazione della Persistenza (Storage) ---
         persistence:
