@@ -8,10 +8,13 @@ metadata:
 spec:
   project: default
   source:
-    # Repository ufficiale dei chart Seafile
-    repoURL: https://seafile.github.io/seafile-helm
+    # ================================================================
+    # --- NUOVO REPO (grom/seafile) ---
+    repoURL: https://grom.github.io/charts
     chart: seafile
-    targetRevision: 2.7.2 # Una versione stabile recente
+    # Usiamo una versione recente di questo chart
+    targetRevision: 3.0.0 
+    # ================================================================
 
     helm:
       values: |
@@ -20,54 +23,48 @@ spec:
           enabled: true
           className: "nginx"
           hosts:
-            # Sostituisco il dominio, usa quello che preferisci
-            - host: "seafile.agnenergia.com" # <-- MODIFICA SE NECESSARIO
+            - host: "seafile.agnenergia.com" 
           annotations:
-            # Fondamentale per l'upload di file grandi!
             nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
+            # Questo chart richiede un'annotazione per il backend
+            nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
         
         # --- Disabilita i componenti interni ---
         mariadb:
           enabled: false
-        elasticsearch:
-          enabled: false # Funzione di ricerca (non necessaria per iniziare)
+        memcached:
+          enabled: false # Disabilitiamo tutto, useremo Redis
+        
+        # --- Usiamo Redis (raccomandato da questo chart) ---
         redis:
-          enabled: false # Seafile abilita memcached di default, che è sufficiente
+          enabled: true
 
         # --- Configurazione Database Esterno (PostgreSQL) ---
+        # La struttura è leggermente diversa
         externalDatabase:
-          enabled: true
-          type: postgresql
-          host: "k3s-db" # Il tuo host (via /etc/hosts)
+          type: "postgresql"
+          host: "k3s-db" 
+          user: "seafileuser" 
+          password: "Cerauncagnonenelbosco2025!" # La tua password del DB
           
-          # I nomi dei 3 DB che hai creato al Passo 1
-          ccnetDbName: "seafile_ccnet_db"
-          seafileDbName: "seafile_db"
-          seahubDbName: "seafile_seahub_db"
-          
-          user: "seafileuser" # L'utente creato
-          password: "Cerauncagnonenelbosco2025!" # <-- Inserisci la password
+          # I nomi dei 3 DB
+          db_name_ccnet: "seafile_ccnet_db"
+          db_name_seafile: "seafile_db"
+          db_name_seahub: "seafile_seahub_db"
 
         # --- Configurazione Storage (NFS) ---
         persistence:
-          storageClass: "nfs-client" # La tua StorageClass
+          storageClass: "nfs-client" 
           size: 50Gi 
 
         # --- Configurazione Amministratore Seafile ---
-        # All'avvio, Seafile creerà questo utente
         seafile:
-          adminUser: "admin@seafile.local" # <-- Puoi cambiarlo
+          adminEmail: "admin@seafile.local" # <-- Puoi cambiarlo
           adminPassword: "PasswordAdminSeafile!" # <-- CAMBIA QUESTO
-
-        # --- Importante per i permessi NFS ---
-        # Molti chart usano UID/GID 1000 di default.
-        securityContext:
-          runAsUser: 1000
-          fsGroup: 1000
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: seafile # Installiamo in un nuovo namespace
+    namespace: seafile 
 
   syncPolicy:
     automated:
