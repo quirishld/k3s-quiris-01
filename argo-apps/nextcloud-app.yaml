@@ -22,7 +22,7 @@ spec:
           username: "nc-admin"              
           password: "Cerauncagnonenelbosco2025!" # Password Admin di Nextcloud
 
-          # # --- Storage per la Configurazione ---
+          # --- Storage per la Configurazione ---
           persistence:
             enabled: true
             storageClass: "nfs-client" # <-- Ripristinato per la config
