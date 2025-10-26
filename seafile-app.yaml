@@ -1,77 +1,77 @@
-# File: k3s-quiris-01/argocd/applications/seafile.yaml
-apiVersion: argroj.io/v1alpha1
+apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Il nome della tua applicazione in Argo CD
   name: seafile
+  # Indica ad Argo CD di gestire le risorse in questo namespace
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    # --- Repository Helm (Usiamo un chart comune, verifica se ne esistono di ufficiali migliori) ---
-    repoURL: https://charts.helm.sh/stable 
-    # NOTA: Il repo 'stable' è deprecato, ma potrebbe contenere ancora vecchi chart.
-    # CERCA UN CHART SEAFILE PIÙ AGGIORNATO su Artifact Hub se questo non funziona.
-    # Per esempio, potresti trovare alternative qui: https://artifacthub.io/packages/search?ts_query_web=seafile&sort=relevance&page=1
-    chart: seafile-server 
-    targetRevision: 0.1.0 # Versione specifica del chart (potrebbe essere obsoleta)
+source:
+    # L'URL del repository Helm di Seafile
+    repoURL: https://haiwen.github.io/seafile-helm-chart/repo
+    # Il nome del chart
+    chart: seafile
+    # Specifica una versione per installazioni stabili
+    targetRevision: 2.5.4 # Puoi cambiare alla versione più recente
 
     helm:
       values: |
-        image:
-          # Verifica l'ultima versione stabile di Seafile Community Edition
-          tag: "9.0.9" 
-
-        # L'admin user si crea al primo accesso
-
+        # --- Configurazione Ingress (per NGINX) ---
         ingress:
           enabled: true
-          ingressClassName: "nginx" # Il nostro ingress-nginx
-          annotations:
-            nginx.ingress.kubernetes.io/proxy_body_size: "0" # Per upload grandi
+          className: "nginx"
           hosts:
-            - host: "seafile.agnenergia.com" # ❗️ USA IL TUO VERO HOSTNAME DNS
-              paths:
-                - path: /
-                  pathType: Prefix
-          # tls: # Aggiungi se userai cert-manager
-          #   - secretName: seafile-tls-secret
-          #     hosts:
-          #       - seafile.agnenergia.com
-
-        # Disabilita DB Interno
+            # Sostituisco il dominio, usa quello che preferisci
+            - host: "seafile.agnenergia.com" # <-- MODIFICA SE NECESSARIO
+          annotations:
+            # Fondamentale per l'upload di file grandi!
+            nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
+        
+        # --- Disabilita i componenti interni ---
         mariadb:
           enabled: false
+        elasticsearch:
+          enabled: false # Funzione di ricerca (non necessaria per iniziare)
+        redis:
+          enabled: false # Seafile abilita memcached di default, che è sufficiente
 
-        # Configura DB Esterno PostgreSQL
+        # --- Configurazione Database Esterno (PostgreSQL) ---
         externalDatabase:
           enabled: true
           type: postgresql
-          host: "k3s-db.default.svc.cluster.local" # Nome DNS completo interno a K8s
-          port: 5432
-          username: "seafileuser"
-          existingSecret: "seafile-db-secret" # Nome del secret creato
-          secretPasswordKey: "password"      # Chiave nel secret
-          databaseNames:
-            ccnet: "ccnetdb"
-            seafile: "seafiledb"
-            seahub: "seahubdb"
+          host: "k3s-db" # Il tuo host (via /etc/hosts)
+          
+          # I nomi dei 3 DB che hai creato al Passo 1
+          ccnetDbName: "seafile_ccnet_db"
+          seafileDbName: "seafile_db"
+          seahubDbName: "seafile_seahub_db"
+          
+          user: "seafileuser" # L'utente creato
+          password: "Cerauncagnonenelbosco2025!" # <-- Inserisci la password
 
-        # Configura Storage NFS
+        # --- Configurazione Storage (NFS) ---
         persistence:
-          enabled: true
-          storageClassName: "nfs-client" # La nostra StorageClass NFS
-          accessMode: ReadWriteOnce      # Seafile richiede RWO
-          size: 100Gi                  # Spazio dati iniziale
+          storageClass: "nfs-client" # La tua StorageClass
+          size: 50Gi 
 
-        # Disabilita Elasticsearch e Memcached interni (se presenti nel chart)
-        elasticsearch:
-          enabled: false
-        memcached:
-          enabled: false
+        # --- Configurazione Amministratore Seafile ---
+        # All'avvio, Seafile creerà questo utente
+        seafile:
+          adminUser: "admin@seafile.local" # <-- Puoi cambiarlo
+          adminPassword: "PasswordAdminSeafile!" # <-- CAMBIA QUESTO
+
+        # --- Importante per i permessi NFS ---
+        # Molti chart usano UID/GID 1000 di default.
+        securityContext:
+          runAsUser: 1000
+          fsGroup: 1000
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: seafile # Namespace di destinazione
+    namespace: seafile # Installiamo in un nuovo namespace
 
   syncPolicy:
     automated:
