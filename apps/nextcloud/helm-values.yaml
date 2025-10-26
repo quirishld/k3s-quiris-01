@@ -31,3 +31,11 @@ persistence:
   enabled: true
   storageClass: "nfs-client" # La nostra SC creata prima
   size: 50Gi # Imposta la dimensione che desideri
+  
+livenessProbe:
+  initialDelaySeconds: 300  # Aspetta 5 minuti (300s) prima di controllare
+  periodSeconds: 15
+
+readinessProbe:
+  initialDelaySeconds: 300  # Aspetta 5 minuti (300s) prima di controllare
+  periodSeconds: 15
