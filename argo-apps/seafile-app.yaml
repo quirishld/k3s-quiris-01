@@ -1,74 +1,77 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Il nome della tua applicazione in Argo CD
   name: seafile
+  # Indica ad Argo CD di gestire le risorse in questo namespace
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    # ================================================================
-    # --- NUOVO REPO (grom/seafile) ---
-    repoURL: https://grom.github.io/charts
-    chart: seafile
-    # Usiamo una versione recente di questo chart
-    targetRevision: 3.0.0 
-    # ================================================================
 
-    helm:
-      values: |
-        # --- Configurazione Ingress (per NGINX) ---
-        ingress:
-          enabled: true
-          className: "nginx"
-          hosts:
-            - host: "seafile.agnenergia.com" 
-          annotations:
-            nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
-            # Questo chart richiede un'annotazione per il backend
-            nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-        
-        # --- Disabilita i componenti interni ---
-        mariadb:
-          enabled: false
-        memcached:
-          enabled: false # Disabilitiamo tutto, useremo Redis
-        
-        # --- Usiamo Redis (raccomandato da questo chart) ---
-        redis:
-          enabled: true
-
-        # --- Configurazione Database Esterno (PostgreSQL) ---
-        # La struttura è leggermente diversa
-        externalDatabase:
-          type: "postgresql"
-          host: "k3s-db" 
-          user: "seafileuser" 
-          password: "Cerauncagnonenelbosco2025!" # La tua password del DB
-          
-          # I nomi dei 3 DB
-          db_name_ccnet: "seafile_ccnet_db"
-          db_name_seafile: "seafile_db"
-          db_name_seahub: "seafile_seahub_db"
-
-        # --- Configurazione Storage (NFS) ---
-        persistence:
-          storageClass: "nfs-client" 
-          size: 50Gi 
-
-        # --- Configurazione Amministratore Seafile ---
-        seafile:
-          adminEmail: "admin@seafile.local" # <-- Puoi cambiarlo
-          adminPassword: "PasswordAdminSeafile!" # <-- CAMBIA QUESTO
-
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: seafile 
-
+  # Configurazione di Sincronizzazione (Opzionale ma utile)
   syncPolicy:
     automated:
-      prune: true
-      selfHeal: true
+      prune: true    # Rimuove le vecchie risorse
+      selfHeal: true # Si assicura che lo stato desiderato sia mantenuto
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=true # Argo CD creerà il namespace 'seafile' se non esiste
+
+  # DESTINAZIONE: Dove installare
+  destination:
+    server: https://kubernetes.default.svc
+    # Il namespace dove Seafile verrà installato (lo stesso del secret)
+    namespace: seafile
+
+  # SORGENTE: Cosa installare (il chart Helm)
+  source:
+    # L'URL del repository Helm di Seafile
+    repoURL: https://haiwen.github.io/seafile-helm-chart/repo
+    # Il nome del chart
+    chart: seafile
+    # Specifica una versione per installazioni stabili
+    targetRevision: 2.5.4 # Puoi cambiare alla versione più recente
+
+    # Qui inseriamo l'equivalente del nostro 'values.yaml'
+    helm:
+      values: |
+        # Configura l'URL con cui accederai a Seafile.
+        # Sostituisci 'seafile.tuodominio.com' con il tuo vero dominio.
+        seafile:
+          server:
+            hostname: "seafile.tuodominio.com"
+
+        # Abilita l'Ingress (per Traefik su k3s)
+        ingress:
+          enabled: true
+          hosts:
+            - seafile.tuodominio.com
+          # Se usi Let's Encrypt (richiede setup di cert-manager o Traefik):
+          # tls:
+          #   - secretName: seafile-tls-secret
+          #     hosts:
+          #       - seafile.tuodominio.com
+
+        # Abilita la persistenza
+        persistence:
+          enabled: true
+          storageClassName: "local-path" # 'local-path' è default su k3s
+          size: 50Gi
+
+        # Abilita le dipendenze
+        mariadb:
+          enabled: true
+          persistence:
+            enabled: true
+            storageClassName: "local-path"
+            size: 10Gi
+
+        memcached:
+          enabled: true
+
+        # Collega il secret creato manualmente.
+        # Il chart prenderà le password da 'seafile-secret'
+        secrets:
+          dbRootPasswordKey: DB_ROOT_PASSWD
+          dbPasswordKey: DB_PASSWORD
+          adminPasswordKey: INIT_SEAFILE_ADMIN_PASSWORD
+          jwtPrivateKey: JWT_PRIVATE_KEY
