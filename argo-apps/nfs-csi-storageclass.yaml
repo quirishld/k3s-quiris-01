@@ -14,4 +14,4 @@ volumeBindingMode: WaitForFirstConsumer # Più efficiente
 mountOptions:
   - hard
   - nfsvers=3
-  - nolock # ⬅️ AGGIUNGI QUESTO
+  - nolock
