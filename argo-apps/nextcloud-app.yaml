@@ -49,6 +49,17 @@ spec:
         mariadb:
           enabled: false
 
+        internalDatabase:
+          enabled: false
+
+        externalDatabase:
+          enabled: true
+          type: "postgresql"
+          host: "10.10.10.190"
+          database: "nextcloud"
+          user: "nextcloud_user"
+          password: "Cerauncagnonenelbosco2025"
+
         nextcloud:
           host: nextcloud.agnenergia.com
           username: admin
