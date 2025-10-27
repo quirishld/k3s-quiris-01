@@ -139,6 +139,37 @@ spec:
             repository: bitnami/redis # Repository corretto
             tag: 'latest' # Specifica un tag recente e valido (es. 7.2 o 7)
             
+        initContainers:
+          - name: nfs-debug
+            image: busybox
+            command:
+              - sh
+              - -c
+              - |
+                echo "== DEBUG NFS ==";
+                id;
+                echo "Contenuto di /var/www/html:";
+                ls -ld /var/www/html || true;
+                ls -l /var/www/html || true;
+                echo "Scrivo file di test...";
+                touch /var/www/html/debug_$(date +%s).txt || echo "ERRORE: impossibile scrivere";
+                echo "Done.";
+                sleep 10;
+            securityContext:
+              runAsUser: 0
+            volumeMounts:
+              - name: nextcloud-data
+                mountPath: /var/www/html
+
+
+
+
+
+
+
+
+
+
 
         # # 2. Imposta i permessi per i pod di REDIS
         # redis:
