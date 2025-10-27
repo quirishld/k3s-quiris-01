@@ -61,9 +61,7 @@ spec:
           host: "10.10.10.190"
           database: "nextcloud"
           user: "nextcloud_user"
-          passwordSecret:
-            name: "nextcloud-db-secret"
-            key: "password"
+          password: "Cerauncagnonenelbosco2025"
 
         nextcloud:
           host: nextcloud.agnenergia.com
