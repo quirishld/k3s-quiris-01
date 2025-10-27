@@ -98,6 +98,8 @@ spec:
           username: admin
           password: "cambiami"
           podSecurityContext:
+            runAsUser: 33
+            runAsGroup: 33
             fsGroup: 33 # UID di www-data (utente di Nextcloud)
             fsGroupChangePolicy: "OnRootMismatch"
 
