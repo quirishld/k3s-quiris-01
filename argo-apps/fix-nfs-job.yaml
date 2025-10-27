@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fix-nfs-nextcloud
+  namespace: nextcloud
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: fix-nfs
+          image: busybox:latest
+          command:
+            - sh
+            - -c
+            - |
+              echo "Fixing NFS permissions on Nextcloud data volume...";
+              mkdir -p /mnt/html;
+              chown -R 33:33 /mnt/html || true;
+              chmod -R 775 /mnt/html || true;
+              echo "Permissions OK";
+              ls -ld /mnt/html;
+          securityContext:
+            runAsUser: 0
+            privileged: true
+          volumeMounts:
+            - name: nextcloud-data
+              mountPath: /mnt/html
+      volumes:
+        - name: nextcloud-data
+          persistentVolumeClaim:
+            claimName: data-nextcloud-0  # controlla con: kubectl get pvc -n nextcloud
