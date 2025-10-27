@@ -19,129 +19,53 @@ spec:
     # Si consiglia di bloccare una versione specifica per la stabilità
     targetRevision: '8.5.1' # Sostituisci con la versione desiderata
 
+    # Qui puoi sovrascrivere i valori di default del chart (values.yaml)
     helm:
       values: |
+        # Esempio: Configurazione dell'Ingress
         ingress:
           enabled: true
-          className: "nginx"
+          className: "nginx" # Sostituisci con la tua classe Ingress (es. traefik, nginx)
           annotations:
-            nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
+            # Esempio: annotazioni per cert-manager (opzionale)
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
           hosts:
-            - host: "nextcloud.agnenergia.com"
+            - host: nextcloud.agnenergia.com
               paths:
                 - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: nextcloud
-                      port:
-                        number: 8080
+                  pathType: ImplementationSpecific
+          tls:
+           - secretName: nextcloud-tls
+             hosts:
+               - nextcloud.agnenergia.com
 
         persistence:
           enabled: true
           storageClass: "nfs-csi"
           accessMode: ReadWriteMany
-          size: 10Gi
+          size: 20Gi
+          subPath: nextcloud-data
 
         mariadb:
           enabled: false
-          db:
-            user: nextcloud
-            database: nextcloud
-          auth:
-            rootPassword: "cambiami-password-root-sicura"
-            password: "cambiami-password-utente-sicura"
-
-        internalDatabase:
-          enabled: false
-
-        externalDatabase:
-          enabled: true
-          type: "postgresql"
-          host: "10.10.10.190"
-          database: "nextcloud"
-          user: "nextcloud_user"
-          password: "Cerauncagnonenelbosco2025"
 
         nextcloud:
           host: nextcloud.agnenergia.com
-          image: nextcloud:33.0.0-apache
-          resources:
-            requests:
-              memory: "1Gi"
-              cpu: "500m"
-            limits:
-              memory: "2Gi"
-              cpu: "1000m"
-
-          existingSecret:
-            enabled: false
           username: admin
-          password: "cambiami"
+          password: "cambiami-password-admin-sicura"
 
-          podSecurityContext:
-            runAsUser: 33
-            runAsGroup: 33
-            fsGroup: 33
-            fsGroupChangePolicy: "OnRootMismatch"
-
-          startupProbe:
-            enabled: true
-            httpGet:
-              path: /status.php
-              port: http
-            failureThreshold: 60
-            periodSeconds: 10
-            timeoutSeconds: 10
-
-          livenessProbe:
-            httpGet:
-              path: /status.php
-              port: http
-            initialDelaySeconds: 600    # ⬅️ 10 minuti di attesa prima della prima verifica
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 5
-
-          readinessProbe:
-            httpGet:
-              path: /status.php
-              port: http
-            initialDelaySeconds: 600    # ⬅️ stesso ritardo per la readiness
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 5
-
-          lifecycle:
-            postStart:
-              exec:
-                command: ["/bin/sh", "-c", "echo 'Nextcloud container avviato'"]
-
-          # Volume temporaneo scrivibile per configurazione PHP (fix Redis)
-          extraVolumes:
-            - name: php-conf
-              emptyDir: {}
-          extraVolumeMounts:
-            - name: php-conf
-              mountPath: /usr/local/etc/php/conf.d
-
-          # InitContainer per test e debug NFS
-          initContainers:
-            - name: nfs-debug
+          # Init container per fixare i permessi sul volume NFS
+          extraInitContainers: |
+            - name: fix-nfs-permissions
               image: busybox
               command:
                 - sh
                 - -c
                 - |
-                  echo "== DEBUG NFS ==";
-                  id;
-                  echo "Contenuto di /var/www/html:";
-                  ls -ld /var/www/html || true;
-                  ls -l /var/www/html || true;
-                  echo "Scrivo file di test...";
-                  touch /var/www/html/debug_$(date +%s).txt || echo "ERRORE: impossibile scrivere";
-                  echo "Done.";
-                  sleep 10;
+                  echo "Fixing NFS permissions on /var/www/html..."
+                  chown -R 33:33 /var/www/html || true
+                  chmod -R 775 /var/www/html || true
+                  echo "Permissions fixed."
               securityContext:
                 runAsUser: 0
               volumeMounts:
@@ -150,23 +74,8 @@ spec:
 
         redis:
           enabled: true
-          image:
-            registry: docker.io
-            repository: bitnami/redis
-            tag: 'latest'
-  
-  
-
-
-        # # 2. Imposta i permessi per i pod di REDIS
-        # redis:
-          # enabled: true # Assicurati che sia abilitato (è il default)
-#          master:
-#            podSecurityContext:
- #             fsGroup: 1001 # UID di redis (utente di Redis)
-#          replicas:
-#            podSecurityContext:
- #             fsGroup: 1001 # UID di redis (utente di Redis)
+          auth:
+            enabled: false
 
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)

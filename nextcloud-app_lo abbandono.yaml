@@ -1,0 +1,188 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Il nome della tua applicazione in Argo CD
+  name: nextcloud
+  # Il namespace in cui risiede Argo CD stesso
+  namespace: argocd
+spec:
+  # Il progetto Argo CD a cui questa app apparterrà (spesso 'default')
+  project: default
+
+  # Configurazione della sorgente (il chart Helm)
+  source:
+    # L'URL del repository Helm di Nextcloud
+    repoURL: https://nextcloud.github.io/helm/
+    # Il nome del chart nel repository
+    chart: nextcloud
+    # Specifica la versione del chart che vuoi deployare
+    # Si consiglia di bloccare una versione specifica per la stabilità
+    targetRevision: '8.5.1' # Sostituisci con la versione desiderata
+
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          className: "nginx"
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
+          hosts:
+            - host: "nextcloud.agnenergia.com"
+              paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: nextcloud
+                      port:
+                        number: 8080
+
+        persistence:
+          enabled: true
+          storageClass: "nfs-csi"
+          accessMode: ReadWriteMany
+          size: 10Gi
+
+        mariadb:
+          enabled: false
+          db:
+            user: nextcloud
+            database: nextcloud
+          auth:
+            rootPassword: "cambiami-password-root-sicura"
+            password: "cambiami-password-utente-sicura"
+
+        internalDatabase:
+          enabled: false
+
+        externalDatabase:
+          enabled: true
+          type: "postgresql"
+          host: "10.10.10.190"
+          database: "nextcloud"
+          user: "nextcloud_user"
+          password: "Cerauncagnonenelbosco2025"
+
+        nextcloud:
+          host: nextcloud.agnenergia.com
+          image: nextcloud:33.0.0-apache
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+
+          existingSecret:
+            enabled: false
+          username: admin
+          password: "cambiami"
+
+          podSecurityContext:
+            runAsUser: 33
+            runAsGroup: 33
+            fsGroup: 33
+            fsGroupChangePolicy: "OnRootMismatch"
+
+          startupProbe:
+            enabled: true
+            httpGet:
+              path: /status.php
+              port: http
+            failureThreshold: 60
+            periodSeconds: 10
+            timeoutSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /status.php
+              port: http
+            initialDelaySeconds: 600    # ⬅️ 10 minuti di attesa prima della prima verifica
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+
+          readinessProbe:
+            httpGet:
+              path: /status.php
+              port: http
+            initialDelaySeconds: 600    # ⬅️ stesso ritardo per la readiness
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "echo 'Nextcloud container avviato'"]
+
+          # Volume temporaneo scrivibile per configurazione PHP (fix Redis)
+          extraVolumes:
+            - name: php-conf
+              emptyDir: {}
+          extraVolumeMounts:
+            - name: php-conf
+              mountPath: /usr/local/etc/php/conf.d
+
+          # InitContainer per test e debug NFS
+          initContainers:
+            - name: nfs-debug
+              image: busybox
+              command:
+                - sh
+                - -c
+                - |
+                  echo "== DEBUG NFS ==";
+                  id;
+                  echo "Contenuto di /var/www/html:";
+                  ls -ld /var/www/html || true;
+                  ls -l /var/www/html || true;
+                  echo "Scrivo file di test...";
+                  touch /var/www/html/debug_$(date +%s).txt || echo "ERRORE: impossibile scrivere";
+                  echo "Done.";
+                  sleep 10;
+              securityContext:
+                runAsUser: 0
+              volumeMounts:
+                - name: nextcloud-data
+                  mountPath: /var/www/html
+
+        redis:
+          enabled: true
+          image:
+            registry: docker.io
+            repository: bitnami/redis
+            tag: 'latest'
+  
+  
+
+
+        # # 2. Imposta i permessi per i pod di REDIS
+        # redis:
+          # enabled: true # Assicurati che sia abilitato (è il default)
+#          master:
+#            podSecurityContext:
+ #             fsGroup: 1001 # UID di redis (utente di Redis)
+#          replicas:
+#            podSecurityContext:
+ #             fsGroup: 1001 # UID di redis (utente di Redis)
+
+
+  # Configurazione della destinazione (il tuo cluster Kubernetes)
+  destination:
+    # L'URL del server Kubernetes (lascia 'https://kubernetes.default.svc' per il cluster locale)
+    server: https://kubernetes.default.svc
+    # Il namespace in cui vuoi installare Nextcloud
+    namespace: nextcloud
+
+  # Policy di sincronizzazione
+  syncPolicy:
+    automated:
+      # Argo CD creerà automaticamente le risorse che non esistono
+      prune: true
+      # Argo CD sincronizzerà automaticamente quando rileva modifiche nel Git/Helm repo
+      selfHeal: true
+    syncOptions:
+      # Crea il namespace 'nextcloud' se non esiste
+      - CreateNamespace=true
