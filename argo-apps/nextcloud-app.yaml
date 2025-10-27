@@ -128,10 +128,10 @@ spec:
           # enabled: true # Assicurati che sia abilitato (è il default)
           master:
             podSecurityContext:
-              fsGroup: 999 # UID di redis (utente di Redis)
+              fsGroup: 1001 # UID di redis (utente di Redis)
           replicas:
             podSecurityContext:
-              fsGroup: 999 # UID di redis (utente di Redis)
+              fsGroup: 1001 # UID di redis (utente di Redis)
 
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
