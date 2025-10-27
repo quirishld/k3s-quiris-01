@@ -82,6 +82,15 @@ spec:
         # Impostazioni di Nextcloud
         nextcloud:
           host: nextcloud.agnenergia.com
+          
+          resources:
+            requests:
+              memory: "512Mi" # Minimo richiesto
+              cpu: "500m"
+            limits:
+              memory: "1024Mi" # Aumenta a 1GB
+              cpu: "1000m" # Limita a 1 CPU core
+          
           # Imposta le credenziali dell'amministratore di Nextcloud
           # Anche queste dovrebbero essere gestite tramite Secret
           existingSecret:
@@ -111,11 +120,16 @@ spec:
             httpGet:
               path: /status.php
               port: http
-            initialDelaySeconds: 60
-            periodSeconds: 10
+            initialDelaySeconds: 180
+            periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
-
+          readinessProbe:
+            # Sovrascrivi il ritardo predefinito
+            initialDelaySeconds: 180 # ⬅️ Aumenta a 3 minuti (180s)
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
         redis:
           enabled: true
           image:
