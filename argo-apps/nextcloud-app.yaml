@@ -37,7 +37,13 @@ spec:
               paths:
                 - path: /
                   pathType: Prefix
-
+                  backend:
+                    service:
+                      # Nome del servizio creato dal chart
+                      name: nextcloud 
+                      port:
+                        # La porta esposta dal Servizio
+                        number: 8080
         # Configurazione della persistenza (MOLTO IMPORTANTE)
         # Assicurati di avere un provisioner di StorageClass nel tuo cluster
         persistence:

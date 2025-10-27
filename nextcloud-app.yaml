@@ -66,13 +66,7 @@ spec:
               paths:
                 - path: /
                   pathType: Prefix
-                  backend:
-                    service:
-                      # Nome del servizio creato dal chart
-                      name: nextcloud 
-                      port:
-                        # La porta esposta dal Servizio
-                        number: 8080
+
         # --- Database Interno Disabilitato ---
         mariadb:
           enabled: false
