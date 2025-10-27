@@ -19,54 +19,41 @@ spec:
     # Si consiglia di bloccare una versione specifica per la stabilità
     targetRevision: '8.5.1' # Sostituisci con la versione desiderata
 
-    # Qui puoi sovrascrivere i valori di default del chart (values.yaml)
     helm:
       values: |
-        # Esempio: Configurazione dell'Ingress
-
         ingress:
           enabled: true
-          className: "nginx" # Specifica che useremo ingress-nginx
+          className: "nginx"
           annotations:
-            # Opzionale: Se vuoi forzare HTTPS (richiede Cert-Manager o config manuale SSL)
-            # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-            # Opzionale: Per file grandi (aumenta il limite di upload)
-            nginx.ingress.kubernetes.io/proxy-body-size: "1024m" 
+            nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
           hosts:
-            - host: "nextcloud.agnenergia.com" # ❗️ Usa il tuo vero dominio/hostname
+            - host: "nextcloud.agnenergia.com"
               paths:
                 - path: /
                   pathType: Prefix
                   backend:
                     service:
-                      # Nome del servizio creato dal chart
-                      name: nextcloud 
+                      name: nextcloud
                       port:
-                        # La porta esposta dal Servizio
                         number: 8080
-        # Configurazione della persistenza (MOLTO IMPORTANTE)
-        # Assicurati di avere un provisioner di StorageClass nel tuo cluster
+
         persistence:
           enabled: true
-          storageClass: "nfs-csi"  #"nfs-clientlocal-path" # Sostituisci con la tua StorageClass (es. ceph-rbd, longhorn)
+          storageClass: "nfs-csi"
           accessMode: ReadWriteMany
-          size: 10Gi # Aumenta la dimensione in base alle tue necessità
+          size: 10Gi
 
-        # Configurazione del database interno (per test/demo)
-        # Per produzione, si consiglia vivamente un database ESTERNO (es. PostgreSQL o MariaDB)
         mariadb:
-          enabled: false # Imposta a 'false' se usi un database esterno
+          enabled: false
           db:
             user: nextcloud
             database: nextcloud
-          # È FONDAMENTALE impostare una password sicura
-          # Si consiglia di gestirla tramite un Secret esterno o SealedSecret
           auth:
             rootPassword: "cambiami-password-root-sicura"
             password: "cambiami-password-utente-sicura"
 
         internalDatabase:
-          enabled: false # Disabilitiamo il MariaDB interno
+          enabled: false
 
         externalDatabase:
           enabled: true
@@ -75,38 +62,32 @@ spec:
           database: "nextcloud"
           user: "nextcloud_user"
           passwordSecret:
-            name: "nextcloud-db-secret" # Creeremo questo segreto manualmente
+            name: "nextcloud-db-secret"
             key: "password"
 
-
-        # Impostazioni di Nextcloud
         nextcloud:
           host: nextcloud.agnenergia.com
           image: nextcloud:33.0.0-apache
           resources:
             requests:
-              memory: "512Mi" # Minimo richiesto
+              memory: "512Mi"
               cpu: "500m"
             limits:
-              memory: "1024Mi" # Aumenta a 1GB
-              cpu: "1000m" # Limita a 1 CPU core
-          
-          # Imposta le credenziali dell'amministratore di Nextcloud
-          # Anche queste dovrebbero essere gestite tramite Secret
+              memory: "1024Mi"
+              cpu: "1000m"
+
           existingSecret:
-            enabled: false # Imposta a 'true' e specifica 'secretName' se usi un Secret
+            enabled: false
           username: admin
           password: "cambiami"
+
           podSecurityContext:
             runAsUser: 33
             runAsGroup: 33
-            fsGroup: 33 # UID di www-data (utente di Nextcloud)
+            fsGroup: 33
             fsGroupChangePolicy: "OnRootMismatch"
 
           startupProbe:
-            # Questa sonda viene eseguita solo all'avvio.
-            # Diamo al pod 5 minuti (30 tentativi * 10 secondi) 
-            # per completare il 'chown' su NFS.
             enabled: true
             httpGet:
               path: /status.php
@@ -114,11 +95,8 @@ spec:
             failureThreshold: 60
             periodSeconds: 10
             timeoutSeconds: 5
-          
+
           livenessProbe:
-            # Facciamo partire la sonda di vita "normale"
-            # solo DOPO che la startupProbe ha avuto successo.
-            # Aumentiamo comunque il ritardo iniziale per sicurezza.
             httpGet:
               path: /status.php
               port: http
@@ -126,72 +104,52 @@ spec:
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
+
           readinessProbe:
-            # Sovrascrivi il ritardo predefinito
-            initialDelaySeconds: 180 # ⬅️ Aumenta a 3 minuti (180s)
+            initialDelaySeconds: 180
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
+
+          # Volume temporaneo scrivibile per configurazione PHP (fix Redis)
+          extraVolumes:
+            - name: php-conf
+              emptyDir: {}
+          extraVolumeMounts:
+            - name: php-conf
+              mountPath: /usr/local/etc/php/conf.d
+
+          # InitContainer per test e debug NFS
+          initContainers:
+            - name: nfs-debug
+              image: busybox
+              command:
+                - sh
+                - -c
+                - |
+                  echo "== DEBUG NFS ==";
+                  id;
+                  echo "Contenuto di /var/www/html:";
+                  ls -ld /var/www/html || true;
+                  ls -l /var/www/html || true;
+                  echo "Scrivo file di test...";
+                  touch /var/www/html/debug_$(date +%s).txt || echo "ERRORE: impossibile scrivere";
+                  echo "Done.";
+                  sleep 10;
+              securityContext:
+                runAsUser: 0
+              volumeMounts:
+                - name: nextcloud-data
+                  mountPath: /var/www/html
+
         redis:
           enabled: true
           image:
-            registry: docker.io # Puoi ometterlo, è il default
-            repository: bitnami/redis # Repository corretto
-            tag: 'latest' # Specifica un tag recente e valido (es. 7.2 o 7)
-            
-        initContainers:
-          # --- InitContainer di debug NFS ---
-          - name: nfs-debug
-            image: busybox
-            command:
-              - sh
-              - -c
-              - |
-                echo "== DEBUG NFS ==";
-                id;
-                echo "Contenuto di /var/www/html:";
-                ls -ld /var/www/html || true;
-                ls -l /var/www/html || true;
-                echo "Scrivo file di test...";
-                touch /var/www/html/debug_$(date +%s).txt || echo "ERRORE: impossibile scrivere";
-                echo "Done.";
-                sleep 10;
-            securityContext:
-              runAsUser: 0
-            volumeMounts:
-              - name: nextcloud-data
-                mountPath: /var/www/html
-
-          # --- InitContainer per fix Redis session file ---
-          - name: fix-redis-permissions
-            image: nextcloud:33.0.0-apache
-            command:
-              - sh
-              - -c
-              - |
-                echo "== FIX REDIS CONFIG ==";
-                mkdir -p /usr/local/etc/php/conf.d;
-                if [ ! -f /usr/local/etc/php/conf.d/redis-session.ini ]; then
-                  echo "session.save_handler = redis" > /usr/local/etc/php/conf.d/redis-session.ini;
-                  echo "session.save_path = 'tcp://redis:6379'" >> /usr/local/etc/php/conf.d/redis-session.ini;
-                fi
-                chmod 666 /usr/local/etc/php/conf.d/redis-session.ini;
-                echo "File redis-session.ini creato e permessi aggiornati.";
-            securityContext:
-              runAsUser: 0
-            volumeMounts:
-              - name: nextcloud-data
-                mountPath: /var/www/html
-
-
-
-
-
-
-
-
-
-
+            registry: docker.io
+            repository: bitnami/redis
+            tag: 'latest'
+  
+  
 
 
         # # 2. Imposta i permessi per i pod di REDIS
