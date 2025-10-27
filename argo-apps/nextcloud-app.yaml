@@ -87,10 +87,10 @@ spec:
           existingSecret:
             enabled: false # Imposta a 'true' e specifica 'secretName' se usi un Secret
           username: admin
-          password: "cambiami-password-admin-sicura"
-          #podSecurityContext:
-          #  fsGroup: 33 # UID di www-data (utente di Nextcloud)
-          #  fsGroupChangePolicy: "OnRootMismatch"
+          password: "cambiami"
+          podSecurityContext:
+            fsGroup: 33 # UID di www-data (utente di Nextcloud)
+            fsGroupChangePolicy: "OnRootMismatch"
 
           startupProbe:
             # Questa sonda viene eseguita solo all'avvio.
