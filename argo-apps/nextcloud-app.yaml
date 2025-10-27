@@ -80,22 +80,22 @@ spec:
           username: admin
           password: "cambiami-password-admin-sicura"
 
-          extraInitContainers: |
-            - name: fix-nfs-permissions
-              image: busybox
-              command:
-                - sh
-                - -c
-                - |
-                  echo "Fixing NFS permissions..."
-                  chown -R 33:33 /var/www/html || true
-                  chmod -R 775 /var/www/html || true
-                  echo "Permissions fixed."
-              securityContext:
-                runAsUser: 0
-              volumeMounts:
-                - name: nextcloud-data
-                  mountPath: /var/www/html
+        extraInitContainers: |
+          - name: fix-nfs-permissions
+            image: busybox
+            command:
+              - sh
+              - -c
+              - |
+                echo "Fixing NFS permissions..."
+                chown -R 33:33 /var/www/html || true
+                chmod -R 775 /var/www/html || true
+                echo "Permissions fixed."
+            securityContext:
+              runAsUser: 0
+            volumeMounts:
+              - name: nextcloud-data
+                mountPath: /var/www/html
 
 
 
