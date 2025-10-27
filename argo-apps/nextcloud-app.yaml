@@ -80,23 +80,24 @@ spec:
           username: admin
           password: "cambiami-password-admin-sicura"
 
-        extraInitContainers: |
+        extraInitContainers:
           - name: fix-nfs-permissions
             image: busybox
             command:
               - sh
               - -c
               - |
-                echo "Fixing NFS permissions..."
-                chown -R 33:33 /var/www/html || true
-                chmod -R 775 /var/www/html || true
-                echo "Permissions fixed."
+                echo "Fixing NFS permissions...";
+                mkdir -p /var/www/html;
+                chown -R 33:33 /var/www/html || true;
+                chmod -R 775 /var/www/html || true;
+                echo "Permissions fixed.";
+                ls -ld /var/www/html;
             securityContext:
               runAsUser: 0
             volumeMounts:
               - name: nextcloud-data
                 mountPath: /var/www/html
-
 
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
