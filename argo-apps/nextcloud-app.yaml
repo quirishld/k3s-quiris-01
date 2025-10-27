@@ -140,6 +140,7 @@ spec:
             tag: 'latest' # Specifica un tag recente e valido (es. 7.2 o 7)
             
         initContainers:
+          # --- InitContainer di debug NFS ---
           - name: nfs-debug
             image: busybox
             command:
@@ -160,6 +161,28 @@ spec:
             volumeMounts:
               - name: nextcloud-data
                 mountPath: /var/www/html
+
+          # --- InitContainer per fix Redis session file ---
+          - name: fix-redis-permissions
+            image: nextcloud:33.0.0-apache
+            command:
+              - sh
+              - -c
+              - |
+                echo "== FIX REDIS CONFIG ==";
+                mkdir -p /usr/local/etc/php/conf.d;
+                if [ ! -f /usr/local/etc/php/conf.d/redis-session.ini ]; then
+                  echo "session.save_handler = redis" > /usr/local/etc/php/conf.d/redis-session.ini;
+                  echo "session.save_path = 'tcp://redis:6379'" >> /usr/local/etc/php/conf.d/redis-session.ini;
+                fi
+                chmod 666 /usr/local/etc/php/conf.d/redis-session.ini;
+                echo "File redis-session.ini creato e permessi aggiornati.";
+            securityContext:
+              runAsUser: 0
+            volumeMounts:
+              - name: nextcloud-data
+                mountPath: /var/www/html
+
 
 
 
