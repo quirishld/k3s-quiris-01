@@ -82,7 +82,7 @@ spec:
         # Impostazioni di Nextcloud
         nextcloud:
           host: nextcloud.agnenergia.com
-          
+          image: nextcloud:32.0.1-apache
           resources:
             requests:
               memory: "512Mi" # Minimo richiesto
