@@ -79,9 +79,9 @@ spec:
           username: admin
           password: "cambiami-password-admin-sicura"
 
-        extraInitContainers:
+        initContainers:
           - name: fix-nfs-permissions
-            image: busybox
+            image: busybox:latest
             command:
               - sh
               - -c
