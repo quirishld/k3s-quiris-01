@@ -26,19 +26,17 @@ spec:
 
         ingress:
           enabled: true
-          className: "nginx" # Sostituisci con la tua classe Ingress (es. traefik, nginx)
+          className: "nginx" # Specifica che useremo ingress-nginx
           annotations:
-            # Esempio: annotazioni per cert-manager (opzionale)
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            # Opzionale: Se vuoi forzare HTTPS (richiede Cert-Manager o config manuale SSL)
+            # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+            # Opzionale: Per file grandi (aumenta il limite di upload)
+            nginx.ingress.kubernetes.io/proxy-body-size: "1024m" 
           hosts:
-            - host: nextcloud.agnenergia.com
+            - host: "nextcloud.agnenergia.com" # ❗️ Usa il tuo vero dominio/hostname
               paths:
                 - path: /
-                  pathType: ImplementationSpecific
-          tls:
-           - secretName: nextcloud-tls
-             hosts:
-               - nextcloud.agnenergia.com
+                  pathType: Prefix
 
         # Configurazione della persistenza (MOLTO IMPORTANTE)
         # Assicurati di avere un provisioner di StorageClass nel tuo cluster
