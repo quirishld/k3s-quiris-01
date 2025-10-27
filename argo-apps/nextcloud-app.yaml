@@ -50,7 +50,7 @@ spec:
         # Configurazione del database interno (per test/demo)
         # Per produzione, si consiglia vivamente un database ESTERNO (es. PostgreSQL o MariaDB)
         mariadb:
-          enabled: true # Imposta a 'false' se usi un database esterno
+          enabled: false # Imposta a 'false' se usi un database esterno
           db:
             user: nextcloud
             database: nextcloud
@@ -59,6 +59,15 @@ spec:
           auth:
             rootPassword: "cambiami-password-root-sicura"
             password: "cambiami-password-utente-sicura"
+
+        externalDatabase:
+          enabled: true
+          type: postgresql
+          host: 10.10.10.190
+          database: nextcloud
+          user: nextcloud_user
+          password: "Cerauncagnonenelbosco2025"
+
 
         # Impostazioni di Nextcloud
         nextcloud:
