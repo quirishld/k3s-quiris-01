@@ -90,6 +90,7 @@ spec:
           password: "cambiami-password-admin-sicura"
           podSecurityContext:
             fsGroup: 33 # UID di www-data (utente di Nextcloud)
+            fsGroupChangePolicy: "OnRootMismatch"
 
           startupProbe:
             # Questa sonda viene eseguita solo all'avvio.
