@@ -1,0 +1,16 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  # Questo è il nuovo nome che useremo
+  name: nfs-csi
+provisioner: nfs.csi.k8s.io # Questo è il nome del driver CSI
+parameters:
+  server: 10.10.10.186       # IP del tuo server NFS
+  share: /srv/nfs/kubedata     # Path della tua condivisione
+  # csi.storage.k8s.io/provisioner-secret-name: "nfs-secret"
+  # csi.storage.k8s.io/provisioner-secret-namespace: "default"
+reclaimPolicy: Retain          # Politica di sicurezza (come prima)
+volumeBindingMode: WaitForFirstConsumer # Più efficiente
+mountOptions:
+  - hard
+  - nfsvers=4.1

@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nfs-csi-driver
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # Questo è il repository Helm per il driver CSI ufficiale
+    repoURL: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+    chart: csi-driver-nfs
+    targetRevision: v4.6.0 # Questa è una versione stabile recente
+    helm:
+      values: |
+        # Il driver CSI è composto da controller e daemonset
+        # Di solito non servono modifiche qui.
+        controller:
+          replicas: 1
+        node:
+          # Questo installerà il driver su tutti i nodi K3s
+          runOnMaster: true 
+          runOnControlPlane: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    # Si consiglia di installarlo in kube-system
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
