@@ -116,15 +116,12 @@ spec:
             failureThreshold: 3
 
         redis:
-          enabled: true 
-          # Questo è ancora necessario
-          master:
-            podSecurityContext:
-              fsGroup: 999 # UID di redis
-          replicas:
-            podSecurityContext:
-              fsGroup: 999 # UID di redis
-
+          enabled: true
+          image:
+            registry: docker.io # Puoi ometterlo, è il default
+            repository: bitnami/redis # Repository corretto
+            tag: 'latest' # Specifica un tag recente e valido (es. 7.2 o 7)
+            
 
         # # 2. Imposta i permessi per i pod di REDIS
         # redis:
