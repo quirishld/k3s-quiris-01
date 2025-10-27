@@ -91,6 +91,33 @@ spec:
           podSecurityContext:
             fsGroup: 33 # UID di www-data (utente di Nextcloud)
 
+          startupProbe:
+            # Questa sonda viene eseguita solo all'avvio.
+            # Diamo al pod 5 minuti (30 tentativi * 10 secondi) 
+            # per completare il 'chown' su NFS.
+            enabled: true
+            httpGet:
+              path: /status.php
+              port: http
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          
+          livenessProbe:
+            # Facciamo partire la sonda di vita "normale"
+            # solo DOPO che la startupProbe ha avuto successo.
+            # Aumentiamo comunque il ritardo iniziale per sicurezza.
+            httpGet:
+              path: /status.php
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+
+
+
         # # 2. Imposta i permessi per i pod di REDIS
         # redis:
           # enabled: true # Assicurati che sia abilitato (è il default)
