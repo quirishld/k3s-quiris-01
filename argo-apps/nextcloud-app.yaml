@@ -49,8 +49,8 @@ spec:
         persistence:
           enabled: true
           storageClass: "nfs-client"  #"nfs-clientlocal-path" # Sostituisci con la tua StorageClass (es. ceph-rbd, longhorn)
-          accessMode: ReadWriteOnce
-          size: 50Gi # Aumenta la dimensione in base alle tue necessità
+          accessMode: ReadWriteMany
+          size: 10Gi # Aumenta la dimensione in base alle tue necessità
 
         # Configurazione del database interno (per test/demo)
         # Per produzione, si consiglia vivamente un database ESTERNO (es. PostgreSQL o MariaDB)
