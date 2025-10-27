@@ -68,10 +68,10 @@ spec:
           image: nextcloud:33.0.0-apache
           resources:
             requests:
-              memory: "512Mi"
+              memory: "1Gi"
               cpu: "500m"
             limits:
-              memory: "1024Mi"
+              memory: "2Gi"
               cpu: "1000m"
 
           existingSecret:
@@ -92,22 +92,30 @@ spec:
               port: http
             failureThreshold: 60
             periodSeconds: 10
-            timeoutSeconds: 5
+            timeoutSeconds: 10
 
           livenessProbe:
             httpGet:
               path: /status.php
               port: http
-            initialDelaySeconds: 180
-            periodSeconds: 15
-            timeoutSeconds: 5
-            failureThreshold: 3
+            initialDelaySeconds: 600    # ⬅️ 10 minuti di attesa prima della prima verifica
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
 
           readinessProbe:
-            initialDelaySeconds: 180
-            periodSeconds: 15
-            timeoutSeconds: 5
-            failureThreshold: 3
+            httpGet:
+              path: /status.php
+              port: http
+            initialDelaySeconds: 600    # ⬅️ stesso ritardo per la readiness
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "echo 'Nextcloud container avviato'"]
 
           # Volume temporaneo scrivibile per configurazione PHP (fix Redis)
           extraVolumes:
