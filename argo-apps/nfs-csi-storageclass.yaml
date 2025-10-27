@@ -13,5 +13,5 @@ reclaimPolicy: Retain          # Politica di sicurezza (come prima)
 volumeBindingMode: WaitForFirstConsumer # Più efficiente
 mountOptions:
   - hard
-  - nfsvers=4.1
+  - nfsvers=3
   - nolock # ⬅️ AGGIUNGI QUESTO
