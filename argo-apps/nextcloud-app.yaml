@@ -48,7 +48,7 @@ spec:
         # Assicurati di avere un provisioner di StorageClass nel tuo cluster
         persistence:
           enabled: true
-          storageClass: "nfs-client"  #"nfs-clientlocal-path" # Sostituisci con la tua StorageClass (es. ceph-rbd, longhorn)
+          storageClass: "nfs-csi"  #"nfs-clientlocal-path" # Sostituisci con la tua StorageClass (es. ceph-rbd, longhorn)
           accessMode: ReadWriteMany
           size: 10Gi # Aumenta la dimensione in base alle tue necessità
 
