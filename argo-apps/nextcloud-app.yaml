@@ -131,7 +131,7 @@ spec:
               fsGroup: 999 # UID di redis (utente di Redis)
           replicas:
             podSecurityContext:
-              fsGroup: 999 # UID di redis (utente di Redis)
+              fsGroup: 999 # UID di redis (utente di Redis) 
 
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
