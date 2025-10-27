@@ -43,9 +43,10 @@ spec:
         # Assicurati di avere un provisioner di StorageClass nel tuo cluster
         persistence:
           enabled: true
-          storageClass: "local-path" # Sostituisci con la tua StorageClass (es. ceph-rbd, longhorn)
-          accessMode: ReadWriteOnce
-          size: 10Gi # Aumenta la dimensione in base alle tue necessità
+          storageClass: "nfs-csi"
+          accessMode: ReadWriteMany
+          size: 20Gi
+          subPath: nextcloud-data
 
         # Configurazione del database interno (per test/demo)
         # Per produzione, si consiglia vivamente un database ESTERNO (es. PostgreSQL o MariaDB)
@@ -78,6 +79,25 @@ spec:
             enabled: false # Imposta a 'true' e specifica 'secretName' se usi un Secret
           username: admin
           password: "cambiami-password-admin-sicura"
+
+          extraInitContainers: |
+            - name: fix-nfs-permissions
+              image: busybox
+              command:
+                - sh
+                - -c
+                - |
+                  echo "Fixing NFS permissions..."
+                  chown -R 33:33 /var/www/html || true
+                  chmod -R 775 /var/www/html || true
+                  echo "Permissions fixed."
+              securityContext:
+                runAsUser: 0
+              volumeMounts:
+                - name: nextcloud-data
+                  mountPath: /var/www/html
+
+
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
   destination:
