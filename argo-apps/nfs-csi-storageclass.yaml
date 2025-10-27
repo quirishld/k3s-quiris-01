@@ -3,6 +3,8 @@ kind: StorageClass
 metadata:
   # Questo è il nuovo nome che useremo
   name: nfs-csi
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
 provisioner: nfs.csi.k8s.io # Questo è il nome del driver CSI
 parameters:
   server: 10.10.10.186       # IP del tuo server NFS
