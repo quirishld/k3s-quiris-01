@@ -46,7 +46,6 @@ spec:
           storageClass: "nfs-csi"
           accessMode: ReadWriteMany
           size: 20Gi
-          subPath: nextcloud-data
 
         # Configurazione del database interno (per test/demo)
         # Per produzione, si consiglia vivamente un database ESTERNO (es. PostgreSQL o MariaDB)
