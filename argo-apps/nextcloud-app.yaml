@@ -88,6 +88,19 @@ spec:
             enabled: false # Imposta a 'true' e specifica 'secretName' se usi un Secret
           username: admin
           password: "cambiami-password-admin-sicura"
+          podSecurityContext:
+            fsGroup: 33 # UID di www-data (utente di Nextcloud)
+
+        # # 2. Imposta i permessi per i pod di REDIS
+        # redis:
+          # enabled: true # Assicurati che sia abilitato (è il default)
+          # master:
+            # podSecurityContext:
+              # fsGroup: 999 # UID di redis (utente di Redis)
+          # replicas:
+            # podSecurityContext:
+              # fsGroup: 999 # UID di redis (utente di Redis)
+
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
   destination:

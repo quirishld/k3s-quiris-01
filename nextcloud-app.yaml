@@ -17,13 +17,11 @@ spec:
     helm:
       values: |
         # --- Configurazione Generale di Nextcloud ---
-     
         nextcloud:
           host: "nextcloud.agnenergia.com" 
           username: "nc-admin"              
           password: "Cerauncagnonenelbosco2025" # Password Admin di Nextcloud
-          podSecurityContext:
-            fsGroup: 33 # UID di www-data (utente di Nextcloud)
+
           # --- Storage per la Configurazione ---
           persistence:
             enabled: true
@@ -77,28 +75,12 @@ spec:
           enabled: false
           
         # --- MANTENUTO: Redis interno (consigliato per performance) ---
-
-        # 2. Imposta i permessi per i pod di REDIS
         redis:
-          enabled: true # Assicurati che sia abilitato (è il default)
-          master:
-            podSecurityContext:
-              fsGroup: 999 # UID di redis (utente di Redis)
-          replicas:
-            podSecurityContext:
-              fsGroup: 999 # UID di redis (utente di Redis)
-
-
-
-
-
-
-        # redis:
-          # enabled: true
-          # image:
-            # registry: docker.io # Puoi ometterlo, è il default
-            # repository: bitnami/redis # Repository corretto
-            # tag: 'latest' # Specifica un tag recente e valido (es. 7.2 o 7)
+          enabled: true
+          image:
+            registry: docker.io # Puoi ometterlo, è il default
+            repository: bitnami/redis # Repository corretto
+            tag: 'latest' # Specifica un tag recente e valido (es. 7.2 o 7)
             
         # --- Configurazione della Persistenza (Storage) ---
         persistence:
