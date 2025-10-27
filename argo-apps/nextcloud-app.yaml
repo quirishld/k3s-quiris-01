@@ -115,7 +115,15 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
 
-
+        redis:
+          enabled: true 
+          # Questo è ancora necessario
+          master:
+            podSecurityContext:
+              fsGroup: 999 # UID di redis
+          replicas:
+            podSecurityContext:
+              fsGroup: 999 # UID di redis
 
 
         # # 2. Imposta i permessi per i pod di REDIS
