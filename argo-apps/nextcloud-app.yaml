@@ -86,17 +86,18 @@ spec:
                 - sh
                 - -c
                 - |
-                  echo "Fixing NFS permissions for 33:33...";
-                  chown -R 33:33 /var/www/html || true;
-                  chmod -R 775 /var/www/html || true;
-                  echo "Permissions fixed.";
+                  echo "Mounting volume and fixing permissions for 33:33...";
+                  chown -R 33:33 /mnt/data || true;
+                  chmod -R 775 /mnt/data || true;
+                  echo "Permissions fixed on /mnt/data.";
               securityContext:
                 runAsUser: 0
                 privileged: true
               volumeMounts:
+                # Montiamo il volume principale in una cartella temporanea
+                # per evitare conflitti
                 - name: nextcloud-main
-                  mountPath: /var/www/html
-                  subPath: html # Specifichiamo il subpath
+                  mountPath: /mnt/data
 
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
