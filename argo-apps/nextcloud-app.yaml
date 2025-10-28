@@ -30,14 +30,14 @@ spec:
             # Esempio: annotazioni per cert-manager (opzionale)
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           hosts:
-            - host: nextcloud.tuo-dominio.com
+            - host: nextcloud.agnenergia.com
               paths:
                 - path: /
                   pathType: ImplementationSpecific
           tls:
            - secretName: nextcloud-tls
              hosts:
-               - nextcloud.tuo-dominio.com
+               - nextcloud.agnenergia.com
 
         # Configurazione della persistenza (MOLTO IMPORTANTE)
         # Assicurati di avere un provisioner di StorageClass nel tuo cluster
@@ -62,7 +62,7 @@ spec:
 
         # Impostazioni di Nextcloud
         nextcloud:
-          host: nextcloud.tuo-dominio.com
+          host: nextcloud.agnenergia.com
           # Imposta le credenziali dell'amministratore di Nextcloud
           # Anche queste dovrebbero essere gestite tramite Secret
           existingSecret:
