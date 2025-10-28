@@ -23,6 +23,7 @@ spec:
     requests:
       storage: 10Gi
   volumeName: nextcloud-pv
+  storageClassName: ""  # <-- AGGIUNGI QUESTA RIGA
 ---
 
 
