@@ -30,35 +30,27 @@ spec:
             # Esempio: annotazioni per cert-manager (opzionale)
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           hosts:
-            - host: nextcloud.agnenergia.com
+            - host: nextcloud.tuo-dominio.com
               paths:
                 - path: /
                   pathType: ImplementationSpecific
           tls:
            - secretName: nextcloud-tls
              hosts:
-               - nextcloud.agnenergia.com
+               - nextcloud.tuo-dominio.com
 
         # Configurazione della persistenza (MOLTO IMPORTANTE)
         # Assicurati di avere un provisioner di StorageClass nel tuo cluster
         persistence:
           enabled: true
-          
-          # 1. NON usiamo più 'existingClaim'
-          # existingClaim: nextcloud-pvc
-          
-          # 2. CHIEDIAMO al provisioner di crearci un volume
-          storageClass: "nfs-client" # <-- Il nome che abbiamo definito sopra
-          
-          # 3. L'NFS è ReadWriteMany (RWX)
-          accessModes:
-            - ReadWriteMany
-          size: 10Gi
+          storageClass: "local-path" # Sostituisci con la tua StorageClass (es. ceph-rbd, longhorn)
+          accessMode: ReadWriteOnce
+          size: 10Gi # Aumenta la dimensione in base alle tue necessità
 
         # Configurazione del database interno (per test/demo)
         # Per produzione, si consiglia vivamente un database ESTERNO (es. PostgreSQL o MariaDB)
         mariadb:
-          enabled: false # Imposta a 'false' se usi un database esterno
+          enabled: true # Imposta a 'false' se usi un database esterno
           db:
             user: nextcloud
             database: nextcloud
@@ -68,42 +60,15 @@ spec:
             rootPassword: "cambiami-password-root-sicura"
             password: "cambiami-password-utente-sicura"
 
-        externalDatabase:
-          enabled: true
-          type: postgresql
-          host: 10.10.10.190
-          database: nextcloud
-          user: nextcloud_user
-          password: "Cerauncagnonenelbosco2025"
-
-
         # Impostazioni di Nextcloud
         nextcloud:
-          host: nextcloud.agnenergia.com
+          host: nextcloud.tuo-dominio.com
           # Imposta le credenziali dell'amministratore di Nextcloud
           # Anche queste dovrebbero essere gestite tramite Secret
           existingSecret:
             enabled: false # Imposta a 'true' e specifica 'secretName' se usi un Secret
           username: admin
           password: "cambiami-password-admin-sicura"
-
-        # -----------------------------------------------------------------
-        resources:
-          requests:
-            cpu: 200m
-            memory: 1Gi
-          limits:
-            cpu: 1000m       # 1 CPU
-            memory: 6Gi        # 2 Gigabyte di RAM
-
-        extraPodSpec:
-          initContainers:
-            - name: check-db-connection
-              image: busybox:latest
-              # Prova a pingare l'host del DB. 
-              # -c 3 = 3 tentativi
-              # -W 2 = timeout di 2 secondi
-              command: ['sh', '-c', 'echo "Testing connection to DB host 10.10.10.190..."; ping -c 3 -W 2 10.10.10.190']
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
   destination:
