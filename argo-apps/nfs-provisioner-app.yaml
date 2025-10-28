@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nfs-provisioner
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
+    chart: nfs-subdir-external-provisioner
+    targetRevision: 4.0.18 # Versione stabile del chart
+    
+    helm:
+      values: |
+        # Configurazione del tuo server NFS
+        nfs:
+          server: "10.10.10.186"
+          path: "/srv/nfs/nextcloud-fresh"
+          
+        # Creiamo una StorageClass chiamata "nfs-client"
+        storageClass:
+          create: true
+          name: "nfs-client"
+          
+          # Quando elimini un PVC, elimina anche la cartella
+          onDelete: delete 
+          
+          # La imposta come default (Opzionale, ma comodo)
+          defaultClass: false 
+          
+        # Il provisioner ha bisogno di permessi elevati
+        replicaCount: 1
+        strategy:
+          type: Recreate
+
+  destination:
+    # Installiamo il provisioner in un suo namespace
+    namespace: nfs-provisioner 
+    server: https://kubernetes.default.svc
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # Crea il namespace "nfs-provisioner" se non esiste
+      - CreateNamespace=true
