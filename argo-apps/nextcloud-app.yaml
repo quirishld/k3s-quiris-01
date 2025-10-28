@@ -70,6 +70,42 @@ spec:
           username: admin
           password: "cambiami-password-admin-sicura"
 
+# -----------------------------------------------------------------
+        # 🔥 4. CORREZIONE: Risorse per Nextcloud
+        # -----------------------------------------------------------------
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+
+        # -----------------------------------------------------------------
+        # 🔥 5. CORREZIONE: Permessi per NFS
+        # -----------------------------------------------------------------
+        extraPodSpec:
+          initContainers:
+            - name: fix-nfs-permissions
+              image: busybox:latest
+              command:
+                - sh
+                - -c
+                - |
+                  echo "Fixing NFS permissions for 33:33...";
+                  chown -R 33:33 /var/www/html || true;
+                  chmod -R 775 /var/www/html || true;
+                  echo "Permissions fixed.";
+              securityContext:
+                runAsUser: 0
+                privileged: true
+              volumeMounts:
+                # 🔥 CORREZIONE: Il nome volume corretto è 'nextcloud-main'
+                - name: nextcloud-main
+                  mountPath: /var/www/html
+                  subPath: html # Specifichiamo il subpath
+
+
   # Configurazione della destinazione (il tuo cluster Kubernetes)
   destination:
     # L'URL del server Kubernetes (lascia 'https://kubernetes.default.svc' per il cluster locale)
