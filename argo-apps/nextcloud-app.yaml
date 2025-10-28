@@ -135,8 +135,10 @@ spec:
                 runAsUser: 0
                 privileged: true
               volumeMounts:
-                - name: nextcloud-data
+                - name: nextcloud-main  # <-- DEVE ESSERE 'nextcloud-main'
                   mountPath: /var/www/html
+                  # Aggiungiamo il subPath per coerenza
+                  subPath: html
 
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
