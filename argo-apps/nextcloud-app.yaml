@@ -96,7 +96,14 @@ spec:
             cpu: 1000m       # 1 CPU
             memory: 6Gi        # 2 Gigabyte di RAM
 
-
+        extraPodSpec:
+          initContainers:
+            - name: check-db-connection
+              image: busybox:latest
+              # Prova a pingare l'host del DB. 
+              # -c 3 = 3 tentativi
+              # -W 2 = timeout di 2 secondi
+              command: ['sh', '-c', 'echo "Testing connection to DB host 10.10.10.190..."; ping -c 3 -W 2 10.10.10.190']
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
   destination:
