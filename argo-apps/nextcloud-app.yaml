@@ -106,7 +106,7 @@ spec:
           username: admin
           password: "cambiami-password-admin-sicura"
 
-          extraPodSpec:
+        extraPodSpec:
             initContainers:
               - name: fix-nfs-permissions
                 image: busybox:latest
