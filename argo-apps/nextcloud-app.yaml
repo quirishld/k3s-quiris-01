@@ -70,9 +70,6 @@ spec:
           username: admin
           password: "cambiami-password-admin-sicura"
 
-# -----------------------------------------------------------------
-        # 🔥 4. CORREZIONE: Risorse per Nextcloud
-        # -----------------------------------------------------------------
         resources:
           requests:
             cpu: 200m
@@ -81,9 +78,6 @@ spec:
             cpu: 1000m
             memory: 2Gi
 
-        # -----------------------------------------------------------------
-        # 🔥 5. CORREZIONE: Permessi per NFS
-        # -----------------------------------------------------------------
         extraPodSpec:
           initContainers:
             - name: fix-nfs-permissions
@@ -100,7 +94,6 @@ spec:
                 runAsUser: 0
                 privileged: true
               volumeMounts:
-                # 🔥 CORREZIONE: Il nome volume corretto è 'nextcloud-main'
                 - name: nextcloud-main
                   mountPath: /var/www/html
                   subPath: html # Specifichiamo il subpath
