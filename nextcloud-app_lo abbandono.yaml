@@ -39,8 +39,8 @@ spec:
 
         persistence:
           enabled: true
-          storageClass: "nfs-client"    # <-- MODIFICATO
-          accessMode: ReadWriteMany     # <-- MODIFICATO
+          storageClass: "nfs-csi"
+          accessMode: ReadWriteMany
           size: 10Gi
 
         mariadb:
