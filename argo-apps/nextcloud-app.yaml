@@ -72,7 +72,17 @@ spec:
         # Assicurati di avere un provisioner di StorageClass nel tuo cluster
         persistence:
           enabled: true
-          existingClaim: nextcloud-pvc
+          
+          # 1. NON usiamo più 'existingClaim'
+          # existingClaim: nextcloud-pvc
+          
+          # 2. CHIEDIAMO al provisioner di crearci un volume
+          storageClass: "nfs-client" # <-- Il nome che abbiamo definito sopra
+          
+          # 3. L'NFS è ReadWriteMany (RWX)
+          accessModes:
+            - ReadWriteMany
+          size: 10Gi
 
         # Configurazione del database interno (per test/demo)
         # Per produzione, si consiglia vivamente un database ESTERNO (es. PostgreSQL o MariaDB)
@@ -110,35 +120,11 @@ spec:
         resources:
           requests:
             cpu: 200m
-            memory: 512Mi
+            memory: 1Gi
           limits:
             cpu: 1000m       # 1 CPU
-            memory: 2Gi        # 2 Gigabyte di RAM
+            memory: 6Gi        # 2 Gigabyte di RAM
 
-        # -----------------------------------------------------------------
-        # 2. SOLUZIONE AL PROBLEMA INIT CONTAINER
-        # Assicurati che 'extraPodSpec' sia qui, NON dentro 'nextcloud:'
-        # -----------------------------------------------------------------
-        extraPodSpec:
-          initContainers:
-            - name: fix-nfs-permissions
-              image: busybox:latest
-              command:
-                - sh
-                - -c
-                - |
-                  echo "Fixing NFS permissions for 33:33...";
-                  chown -R 33:33 /var/www/html || true;
-                  chmod -R 775 /var/www/html || true;
-                  echo "Permissions fixed.";
-              securityContext:
-                runAsUser: 0
-                privileged: true
-              volumeMounts:
-                - name: nextcloud-main  # <-- DEVE ESSERE 'nextcloud-main'
-                  mountPath: /var/www/html
-                  # Aggiungiamo il subPath per coerenza
-                  subPath: html
 
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
