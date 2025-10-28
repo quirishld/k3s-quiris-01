@@ -86,19 +86,28 @@ spec:
                 - sh
                 - -c
                 - |
-                  echo "Fixing permissions on /data (subPath: html)...";
-                  chown -R 33:33 /data || true;
-                  chmod -R 775 /data || true;
+                  echo "Fixing permissions on /data-volume ...";
+                  # Creiamo le directory se non esistono
+                  mkdir -p /data-volume/html
+                  mkdir -p /data-volume/config
+                  mkdir -p /data-volume/custom_apps
+                  mkdir -p /data-volume/data
+                  mkdir -p /data-volume/themes
+                  mkdir -p /data-volume/tmp
+                  mkdir -p /data-volume/root
+                  
+                  # Applichiamo i permessi
+                  chown -R 33:33 /data-volume/ || true;
+                  chmod -R 775 /data-volume/ || true;
                   echo "Permissions fixed.";
               securityContext:
                 runAsUser: 0
                 privileged: true
               volumeMounts:
-                # Montiamo il subPath 'html' del volume 'nextcloud-main'
-                # in una cartella /data temporanea.
+                # Montiamo l'INTERO volume PVC, non un subPath
+                # Il nome 'nextcloud-main' l'ho preso dal tuo 'describe'
                 - name: nextcloud-main
-                  mountPath: /data
-                  subPath: html
+                  mountPath: /data-volume
 
 
   # Configurazione della destinazione (il tuo cluster Kubernetes)
