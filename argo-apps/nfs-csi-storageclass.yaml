@@ -8,7 +8,7 @@ metadata:
 provisioner: nfs.csi.k8s.io # Questo è il nome del driver CSI
 parameters:
   server: 10.10.10.186       # IP del tuo server NFS
-  share: /srv/nfs/k3s-pv     # Path della tua condivisione
+  share: /srv/nfs/nextcloud-fresh     # Path della tua condivisione
   # csi.storage.k8s.io/provisioner-secret-name: "nfs-secret"
   # csi.storage.k8s.io/provisioner-secret-namespace: "default"
 reclaimPolicy: Retain          # Politica di sicurezza (come prima)
